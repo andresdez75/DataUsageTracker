@@ -1,84 +1,84 @@
-# 🧭 Technical Decisions
+# Technical Decisions
 
-Registro de decisiones técnicas relevantes del proyecto, con su contexto y razonamiento. El objetivo es que cualquier persona que llegue al proyecto entienda **por qué** se hizo así, no solo **qué** se hizo.
+Record of relevant technical decisions for the project, with their context and reasoning. The goal is for anyone joining the project to understand **why** it was done this way, not just **what** was done.
 
 ---
 
-## [001] Arquitectura: Empty Activity sin librerías externas
+## [001] Architecture: Empty Activity without external libraries
 
-**Fecha:** 2026-03  
-**Estado:** ✅ Adoptada
+**Date:** 2026-03
+**Status:** ✅ Adopted
 
-### Contexto
-La app tiene un único propósito: consultar y mostrar el consumo de datos foreground/background por app. No requiere persistencia local, ni llamadas a APIs externas, ni navegación compleja entre pantallas.
+### Context
+The app has a single purpose: query and display foreground/background data usage per app. It does not require local persistence, external API calls, or complex navigation between screens.
 
-### Decisión
-Usar **Empty Activity** como punto de partida, apoyándose exclusivamente en el SDK nativo de Android, sin incorporar librerías de terceros.
+### Decision
+Use **Empty Activity** as the starting point, relying exclusively on the native Android SDK, without incorporating third-party libraries.
 
-### Componentes utilizados (todos nativos)
+### Components used (all native)
 
-| Componente        | Propósito                                           |
+| Component         | Purpose                                             |
 |-------------------|-----------------------------------------------------|
-| `NetworkStatsManager` | Consultar consumo foreground/background al SO   |
-| `PackageManager`  | Obtener nombre e icono de cada app instalada        |
-| `RecyclerView`    | Listar las apps con su consumo (incluido en AndroidX)|
-| `ViewBinding`     | Conectar vistas con código (activado en gradle)     |
+| `NetworkStatsManager` | Query foreground/background usage from the OS   |
+| `PackageManager`  | Get name and icon of each installed app             |
+| `RecyclerView`    | List apps with their usage (included in AndroidX)   |
+| `ViewBinding`     | Connect views with code (enabled in gradle)         |
 
-### Razonamiento
-- La lógica es una única consulta al sistema operativo — no justifica introducir capas de abstracción
-- Menos dependencias externas = menos superficie de error, menos actualizaciones a mantener y menor tamaño del APK
-- Facilita que cualquier persona del equipo pueda leer y entender el código sin conocer frameworks específicos
+### Reasoning
+- The logic is a single query to the operating system — it does not justify introducing abstraction layers
+- Fewer external dependencies = smaller error surface, fewer updates to maintain, and smaller APK size
+- Makes it easy for anyone on the team to read and understand the code without knowing specific frameworks
 
-### Consecuencias
-- Si en el futuro se añade persistencia de datos → evaluar **Room**
-- Si se añaden múltiples pantallas con navegación → evaluar **Navigation Component**
-- Si crece la complejidad de estado → evaluar **ViewModel + LiveData**
+### Consequences
+- If data persistence is added in the future → evaluate **Room**
+- If multiple screens with navigation are added → evaluate **Navigation Component**
+- If state complexity grows → evaluate **ViewModel + LiveData**
 
 ---
 
-## [002] Permiso de acceso a estadísticas de uso
+## [002] Usage statistics access permission
 
-**Fecha:** 2026-03  
-**Estado:** ✅ Adoptada
+**Date:** 2026-03
+**Status:** ✅ Adopted
 
-### Contexto
-Para consultar el consumo de datos por app diferenciando foreground y background, Android requiere un permiso especial que el usuario debe conceder manualmente.
+### Context
+To query per-app data usage differentiating foreground and background, Android requires a special permission that the user must grant manually.
 
-### Decisión
-Usar el permiso **`PACKAGE_USAGE_STATS`**, declarado en `AndroidManifest.xml`:
+### Decision
+Use the **`PACKAGE_USAGE_STATS`** permission, declared in `AndroidManifest.xml`:
 
 ```xml
 <uses-permission android:name="android.permission.PACKAGE_USAGE_STATS"
     tools:ignore="ProtectedPermissions"/>
 ```
 
-### Razonamiento
-- Es el permiso estándar para acceder a `NetworkStatsManager` y `UsageStatsManager` desde apps de usuario
-- El permiso alternativo (`READ_NETWORK_USAGE_HISTORY`) es de nivel sistema y solo está disponible para apps del fabricante — no válido para distribución en Play Store
-- Al ser un permiso especial (`appOp`), no se solicita en tiempo de ejecución como los permisos normales: hay que redirigir al usuario a **Ajustes > Apps > Acceso especial > Acceso a uso**
+### Reasoning
+- It is the standard permission for accessing `NetworkStatsManager` and `UsageStatsManager` from user apps
+- The alternative permission (`READ_NETWORK_USAGE_HISTORY`) is system-level and only available for manufacturer apps — not valid for Play Store distribution
+- Being a special permission (`appOp`), it is not requested at runtime like normal permissions: the user must be redirected to **Settings > Apps > Special access > Usage access**
 
-### Consecuencias
-- La app debe detectar si el permiso está concedido al arrancar y mostrar la pantalla de ajustes si no lo está
-- En algunos fabricantes (Xiaomi, Huawei, Samsung) la ruta de ajustes puede variar — considerar guía visual en onboarding
+### Consequences
+- The app must detect whether the permission is granted at startup and show the settings screen if it is not
+- On some manufacturers (Xiaomi, Huawei, Samsung) the settings path may vary — consider a visual guide in onboarding
 
 ---
 
-## [003] Sin backend — procesamiento 100% en cliente
+## [003] No backend — 100% client-side processing
 
-**Fecha:** 2026-03  
-**Estado:** ✅ Adoptada
+**Date:** 2026-03
+**Status:** ✅ Adopted
 
-### Contexto
-Los datos de consumo son locales al dispositivo y no necesitan sincronizarse con ningún servidor externo.
+### Context
+Usage data is local to the device and does not need to be synced with any external server.
 
-### Decisión
-La app opera completamente **offline**, sin ningún tipo de backend, base de datos remota ni analítica externa.
+### Decision
+The app operates completely **offline**, without any backend, remote database, or external analytics.
 
-### Razonamiento
-- Los datos consultados ya residen en el propio dispositivo — no hay necesidad de extraerlos
-- Elimina dependencias de conectividad, latencia y costes de infraestructura
-- Simplifica el modelo de privacidad: ningún dato del usuario sale del dispositivo
+### Reasoning
+- The queried data already resides on the device itself — there is no need to extract it
+- Eliminates connectivity dependencies, latency, and infrastructure costs
+- Simplifies the privacy model: no user data leaves the device
 
-### Consecuencias
-- El histórico disponible está limitado a lo que Android retiene en el SO (~4 semanas)
-- Si en el futuro se quiere histórico más largo o comparativas entre dispositivos → requeriría introducir backend y rediseñar el modelo de datos
+### Consequences
+- Available history is limited to what Android retains in the OS (~4 weeks)
+- If longer history or cross-device comparisons are desired in the future → would require introducing a backend and redesigning the data model

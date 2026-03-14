@@ -1,114 +1,114 @@
-# 📶 Data Usage Tracker
+# Data Usage Tracker
 
-App Android que mide y diferencia el consumo de datos móviles entre **foreground** (app en uso activo) y **background** (app ejecutándose en segundo plano).
-
----
-
-## ¿Para qué sirve?
-
-Permite al usuario conocer con precisión cuántos datos consume cada aplicación instalada en su dispositivo, diferenciando si el consumo ocurrió mientras la app estaba en primer plano o en segundo plano. Esto ayuda a identificar apps que consumen datos de forma silenciosa e innecesaria.
+Android app that measures and differentiates mobile data usage between **foreground** (app actively in use) and **background** (app running in the background).
 
 ---
 
-## Funcionalidades principales
+## What is it for?
 
-### Vista por aplicación
+It allows the user to know precisely how much data each installed application consumes on their device, distinguishing whether the usage occurred while the app was in the foreground or background. This helps identify apps that silently and unnecessarily consume data.
+
+---
+
+## Main Features
+
+### Per-app view
 | | All | Mobile | Wi-Fi |
 |---|---|---|---|
 | Foreground | ✅ | ✅ | ✅ |
 | Background | ✅ | ✅ | ✅ |
 
-### Vista agregada (total del dispositivo)
+### Aggregated view (device total)
 | | All | Mobile | Wi-Fi |
 |---|---|---|---|
 | Foreground | ✅ | ✅ | ✅ |
 | Background | ✅ | ✅ | ✅ |
 
-- 📅 Filtro por periodo de tiempo (día, semana, mes)
-- 🔒 Sin backend: todos los datos se procesan y almacenan localmente en el dispositivo
+- Time period filter (day, week, month)
+- No backend: all data is processed and stored locally on the device
 
 ---
 
-## Requisitos
+## Requirements
 
-| Requisito         | Detalle                          |
+| Requirement       | Detail                           |
 |-------------------|----------------------------------|
-| Android mínimo    | Android 6.0 (API 23)             |
-| Permiso necesario | `PACKAGE_USAGE_STATS`            |
-| Conexión a red    | No requerida                     |
-| Backend           | Ninguno — funciona offline       |
+| Minimum Android   | Android 6.0 (API 23)            |
+| Required permission | `PACKAGE_USAGE_STATS`          |
+| Network connection | Not required                    |
+| Backend           | None — works offline             |
 
-> ⚠️ El permiso `PACKAGE_USAGE_STATS` debe ser concedido manualmente por el usuario en **Ajustes > Apps > Acceso especial > Acceso a uso**.
-
----
-
-## Cómo funciona
-
-La app utiliza la API nativa de Android `NetworkStatsManager` para consultar las estadísticas de red del sistema operativo. Android registra de forma nativa el consumo separado por:
-
-- **Foreground**: bytes transferidos mientras la app estaba visible para el usuario
-- **Background**: bytes transferidos mientras la app estaba en segundo plano
-
-No se captura ni transmite ningún dato fuera del dispositivo.
+> ⚠️ The `PACKAGE_USAGE_STATS` permission must be manually granted by the user in **Settings > Apps > Special access > Usage access**.
 
 ---
 
-## Instalación y compilación
+## How it works
 
-### Opción A — Instalar APK directamente
-1. Descarga el archivo `.apk` desde la sección [Releases](./releases)
-2. En tu dispositivo Android, activa *Instalar desde fuentes desconocidas*
-3. Abre el `.apk` e instala
+The app uses the native Android API `NetworkStatsManager` to query the operating system's network statistics. Android natively records usage separated by:
 
-### Opción B — Compilar desde código fuente
+- **Foreground**: bytes transferred while the app was visible to the user
+- **Background**: bytes transferred while the app was running in the background
+
+No data is captured or transmitted outside the device.
+
+---
+
+## Installation and build
+
+### Option A — Install APK directly
+1. Download the `.apk` file from the [Releases](./releases) section
+2. On your Android device, enable *Install from unknown sources*
+3. Open the `.apk` and install
+
+### Option B — Build from source
 ```bash
-# Clonar el repositorio
-git clone https://github.com/tu-usuario/data-usage-tracker.git
+# Clone the repository
+git clone https://github.com/andresdez75/DataUsageTracker.git
 
-# Abrir en Android Studio y ejecutar sobre dispositivo o emulador
+# Open in Android Studio and run on device or emulator
 ```
 
-Requisitos de entorno:
-- Android Studio Hedgehog o superior
+Environment requirements:
+- Android Studio Hedgehog or later
 - JDK 17
 - Gradle 8+
 
 ---
 
-## Estructura del proyecto
+## Project structure
 
 ```
 app/
 ├── src/
 │   ├── main/
-│   │   ├── java/         # Lógica de la app (Kotlin/Java)
-│   │   ├── res/          # Layouts, strings, iconos
+│   │   ├── java/         # App logic (Kotlin/Java)
+│   │   ├── res/          # Layouts, strings, icons
 │   │   └── AndroidManifest.xml
 ├── build.gradle
 README.md
-DATA_MODEL.md             # Esquema de datos recogidos
-METRICS.md                # Definición de métricas calculadas
+DATA_MODEL.md             # Schema of collected data
+METRICS.md                # Definition of calculated metrics
 ```
 
 ---
 
-## Limitaciones conocidas
+## Known limitations
 
-- Los datos históricos disponibles dependen del sistema operativo (Android guarda hasta 4 semanas por defecto)
-- En algunos fabricantes (Xiaomi, Huawei) pueden existir restricciones adicionales de permisos
-- El consumo en redes VPN puede no reflejarse con precisión
+- Available historical data depends on the operating system (Android stores up to 4 weeks by default)
+- Some manufacturers (Xiaomi, Huawei) may have additional permission restrictions
+- Data usage over VPN networks may not be accurately reflected
 
 ---
 
-## Estado del proyecto
+## Project status
 
-| Estado       | Versión |
+| Status       | Version |
 |--------------|---------|
-| 🟢 Activo    | v1.0.0  |
+| 🟢 Active   | v1.0.0  |
 
 ---
 
-## Contacto y mantenimiento
+## Contact and maintenance
 
-Proyecto mantenido por el equipo de producto de datos.
-Para dudas o mejoras, abrir un issue en este repositorio.
+Project maintained by the data product team.
+For questions or improvements, open an issue in this repository.

@@ -1,83 +1,80 @@
 # CLAUDE.md — Data Usage Tracker
 
-## Qué es este proyecto
-App Android que mide el consumo de datos móviles diferenciando **foreground** (app en uso activo) y **background** (app en segundo plano) para cada app instalada por el usuario.
+## What is this project
+Android app that measures mobile data usage differentiating **foreground** (app actively in use) and **background** (app in the background) for each user-installed app.
 
-## Stack técnico
-- **Lenguaje**: Kotlin
+## Tech stack
+- **Language**: Kotlin
 - **Min SDK**: 23 (Android 6.0)
-- **Arquitectura**: Empty Views Activity, sin librerías externas salvo AndroidX + Material
-- **Sin backend**: todo se procesa localmente en el dispositivo
-- **Build**: Gradle con `.kts`, version catalog (`libs.versions.toml`)
+- **Architecture**: Empty Views Activity, no external libraries besides AndroidX + Material
+- **No backend**: everything is processed locally on the device
+- **Build**: Gradle with `.kts`, version catalog (`libs.versions.toml`)
 
-## Estructura del proyecto
+## Project structure
 ```
 app/src/main/java/com/datausage/tracker/
 ├── data/
-│   └── NetworkStatsHelper.kt   # Toda la lógica de consulta al SO
+│   └── NetworkStatsHelper.kt   # All OS query logic
 ├── model/
 │   └── Models.kt               # AppUsageEntry, TotalUsageSummary, enums
 ├── ui/
-│   ├── MainActivity.kt         # Pantalla principal
+│   ├── MainActivity.kt         # Main screen
 │   └── AppUsageAdapter.kt      # RecyclerView adapter
 └── util/
-    └── ByteFormatter.kt        # Conversión bytes → B/KB/MB/GB
+    └── ByteFormatter.kt        # Byte conversion → B/KB/MB/GB
 
 app/src/main/res/
 ├── layout/
-│   ├── activity_main.xml       # Layout principal
-│   └── item_app_usage.xml      # Fila de la lista de apps
+│   ├── activity_main.xml       # Main layout
+│   └── item_app_usage.xml      # App list row
 └── values/
     ├── colors.xml
     ├── strings.xml
     └── themes.xml
 ```
 
-## Permisos requeridos (AndroidManifest.xml)
+## Required permissions (AndroidManifest.xml)
 ```xml
 <uses-permission android:name="android.permission.PACKAGE_USAGE_STATS" tools:ignore="ProtectedPermissions"/>
 <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
 ```
-El permiso PACKAGE_USAGE_STATS es especial — el usuario lo concede manualmente en Ajustes → Apps → Acceso especial → Acceso a datos de uso.
+The PACKAGE_USAGE_STATS permission is special — the user grants it manually in Settings → Apps → Special access → Usage data access.
 
-## Modelo de datos clave
+## Key data model
 
 ### AppUsageEntry
-Representa el consumo de UNA app en un periodo y tipo de red:
-- `fgRxBytes`, `fgTxBytes` — bytes foreground (recibidos/enviados)
-- `bgRxBytes`, `bgTxBytes` — bytes background
-- `fgTotalBytes`, `bgTotalBytes`, `totalBytes` — campos derivados
-- `bgRatio` — proporción background (0.0–1.0). Si > 0.5 se marca en naranja
+Represents the usage of ONE app in a given period and network type:
+- `fgRxBytes`, `fgTxBytes` — foreground bytes (received/sent)
+- `bgRxBytes`, `bgTxBytes` — background bytes
+- `fgTotalBytes`, `bgTotalBytes`, `totalBytes` — derived fields
+- `bgRatio` — background ratio (0.0–1.0). If > 0.5, highlighted in orange
 
 ### TotalUsageSummary
-Agregado de todas las apps para resumen del dispositivo.
+Aggregate of all apps for the device summary.
 
 ### Enums
 - `NetworkType`: ALL, MOBILE, WIFI
-- `TimePeriod`: TODAY, WEEK (7 días), MONTH (30 días)
+- `TimePeriod`: TODAY, WEEK (7 days), MONTH (30 days)
 
-## Lógica principal — NetworkStatsHelper.kt
-- Usa `NetworkStatsManager.querySummary()` para obtener datos del SO
-- Separa foreground/background según `bucket.state == STATE_FOREGROUND`
-- Para `NetworkType.ALL` suma MOBILE + WIFI (el SO no tiene constante ALL)
-- En datos móviles puede necesitar `subscriberId` de `TelephonyManager`
-- El filtro de apps usa `Intent.ACTION_MAIN + CATEGORY_LAUNCHER` para obtener solo apps con icono en el launcher (apps de usuario)
+## Main logic — NetworkStatsHelper.kt
+- Uses `NetworkStatsManager.querySummary()` to get data from the OS
+- Separates foreground/background based on `bucket.state == STATE_FOREGROUND`
+- For `NetworkType.ALL`, sums MOBILE + WIFI (the OS has no ALL constant)
+- Mobile data may require `subscriberId` from `TelephonyManager`
+- App filtering uses `Intent.ACTION_MAIN + CATEGORY_LAUNCHER` to get only apps with a launcher icon (user apps)
 
-## Problema conocido activo
-El filtro de apps de usuario no funciona correctamente — solo aparece Google Play en la lista. WhatsApp, Instagram y otras apps instaladas por el usuario no aparecen. El problema está en cómo se cruzan los UIDs del launcher con los UIDs de los buckets de NetworkStatsManager.
+## Metrics displayed by the app
+- Per app: FG usage, BG usage, total, % background
+- Device summary: total FG, total BG, total, global BG %, app count
+- App ranking by total usage (highest to lowest)
+- Units: B / KB / MB / GB with 1 decimal place
 
-## Métricas que muestra la app
-- Por app: consumo FG, consumo BG, total, % background
-- Resumen dispositivo: total FG, total BG, total, % BG global, nº apps
-- Ranking de apps por consumo total (mayor a menor)
-- Unidades: B / KB / MB / GB con 1 decimal
+## Important technical decisions
+1. No external libraries — only native SDK + AndroidX + Material
+2. No backend — fully offline, data from the OS itself
+3. If complexity grows → evaluate ViewModel + LiveData
+4. Android stores ~4 weeks of history in NetworkStatsManager
 
-## Decisiones técnicas importantes
-1. Sin librerías externas — solo SDK nativo + AndroidX + Material
-2. Sin backend — todo offline, datos del propio SO
-3. Si crece la complejidad → evaluar ViewModel + LiveData
-4. Android guarda histórico de ~4 semanas en NetworkStatsManager
-
-## Cómo compilar
-Abrir en Android Studio, sincronizar Gradle y ejecutar sobre dispositivo Android 6.0+.
-El usuario debe conceder el permiso de acceso a datos de uso antes de ver cualquier dato.
+## How to build
+Open in Android Studio, sync Gradle, and run on an Android 6.0+ device.
+The user must grant the usage data access permission before seeing any data.

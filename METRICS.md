@@ -1,66 +1,66 @@
-# 📊 Metrics
+# Metrics
 
-Definición de las métricas que la app calcula y presenta al usuario a partir de los datos obtenidos de `NetworkStatsManager`. Todas las métricas son calculadas en cliente, en tiempo real, sin persistencia.
-
----
-
-## Dimensiones de análisis
-
-Todas las métricas se pueden consultar combinando estas dos dimensiones:
-
-| Dimensión     | Valores posibles              |
-|---------------|-------------------------------|
-| `NetworkType` | `ALL`, `MOBILE`, `WIFI`       |
-| `TimePeriod`  | `TODAY`, `WEEK`, `MONTH`      |
+Definition of the metrics the app calculates and presents to the user from data obtained via `NetworkStatsManager`. All metrics are calculated client-side, in real time, without persistence.
 
 ---
 
-## Vista por aplicación
+## Analysis dimensions
 
-Métricas calculadas para **cada app individualmente**.
+All metrics can be queried by combining these two dimensions:
 
-| Métrica               | Descripción                                                  | Fuente                          |
+| Dimension     | Possible values                 |
+|---------------|---------------------------------|
+| `NetworkType` | `ALL`, `MOBILE`, `WIFI`         |
+| `TimePeriod`  | `TODAY`, `WEEK`, `MONTH`        |
+
+---
+
+## Per-app view
+
+Metrics calculated for **each app individually**.
+
+| Metric                | Description                                                  | Source                          |
 |-----------------------|--------------------------------------------------------------|---------------------------------|
-| Consumo foreground    | Total de bytes (rx + tx) mientras la app estaba en pantalla  | `fgRxBytes + fgTxBytes`         |
-| Consumo background    | Total de bytes (rx + tx) mientras la app estaba en segundo plano | `bgRxBytes + bgTxBytes`     |
-| Consumo total         | Suma de foreground + background                              | `fgTotalBytes + bgTotalBytes`   |
-| % background          | Proporción del consumo que ocurre en background              | `bgTotalBytes / totalBytes`     |
-| Ranking por consumo   | Ordenación de apps de mayor a menor consumo total            | `totalBytes` desc               |
+| Foreground usage      | Total bytes (rx + tx) while the app was on screen            | `fgRxBytes + fgTxBytes`         |
+| Background usage      | Total bytes (rx + tx) while the app was in the background    | `bgRxBytes + bgTxBytes`         |
+| Total usage           | Sum of foreground + background                               | `fgTotalBytes + bgTotalBytes`   |
+| % background          | Proportion of usage that occurs in background                | `bgTotalBytes / totalBytes`     |
+| Usage ranking         | Apps sorted from highest to lowest total usage               | `totalBytes` desc               |
 
 ---
 
-## Vista agregada (total dispositivo)
+## Aggregated view (device total)
 
-Métricas calculadas sumando **todas las apps** del dispositivo.
+Metrics calculated by summing **all apps** on the device.
 
-| Métrica                    | Descripción                                                       | Fuente                              |
+| Metric                     | Description                                                       | Source                              |
 |----------------------------|-------------------------------------------------------------------|-------------------------------------|
-| Total foreground dispositivo | Suma del foreground de todas las apps                           | `Σ fgTotalBytes`                    |
-| Total background dispositivo | Suma del background de todas las apps                           | `Σ bgTotalBytes`                    |
-| Total consumo dispositivo  | Suma del consumo total de todas las apps                          | `Σ totalBytes`                      |
-| % background global        | Qué proporción del consumo total del dispositivo es background    | `Σ bgTotalBytes / Σ totalBytes`     |
-| Número de apps con consumo | Cuántas apps han generado tráfico en el periodo                   | `appCount`                          |
+| Device total foreground    | Sum of foreground across all apps                                 | `Σ fgTotalBytes`                    |
+| Device total background    | Sum of background across all apps                                 | `Σ bgTotalBytes`                    |
+| Device total usage         | Sum of total usage across all apps                                | `Σ totalBytes`                      |
+| Global % background        | What proportion of total device usage is background               | `Σ bgTotalBytes / Σ totalBytes`     |
+| Apps with usage            | How many apps generated traffic in the period                     | `appCount`                          |
 
 ---
 
-## Presentación de valores
+## Value presentation
 
-Los bytes del SO se convierten en la capa de presentación según estas reglas:
+OS bytes are converted in the presentation layer according to these rules:
 
-| Rango              | Unidad mostrada | Ejemplo        |
-|--------------------|-----------------|----------------|
-| < 1.024 bytes      | B               | `512 B`        |
-| 1.024 – 1.048.575  | KB              | `768 KB`       |
-| 1.048.576 – 1 GB   | MB              | `45,3 MB`      |
-| > 1 GB             | GB              | `1,2 GB`       |
+| Range                | Displayed unit | Example        |
+|----------------------|----------------|----------------|
+| < 1,024 bytes        | B              | `512 B`        |
+| 1,024 – 1,048,575   | KB             | `768 KB`       |
+| 1,048,576 – 1 GB    | MB             | `45.3 MB`      |
+| > 1 GB              | GB             | `1.2 GB`       |
 
-> Los valores se redondean a **1 decimal** para la visualización.
+> Values are rounded to **1 decimal place** for display.
 
 ---
 
-## Notas
+## Notes
 
-- El **% background** es la métrica clave del producto: permite detectar apps que consumen datos de forma silenciosa
-- Una app con `bgRatio > 0.5` consume más en background que en foreground — candidata a revisar o restringir
-- Apps sin consumo en el periodo no aparecen en ninguna vista
-- El agregado `ALL` en `NetworkType` puede diferir ligeramente de `MOBILE + WIFI` si hay otros tipos de red activos (VPN, Ethernet por USB)
+- **% background** is the product's key metric: it allows detecting apps that silently consume data
+- An app with `bgRatio > 0.5` consumes more in background than foreground — candidate for review or restriction
+- Apps with no usage in the period do not appear in any view
+- The `ALL` aggregate in `NetworkType` may differ slightly from `MOBILE + WIFI` if other network types are active (VPN, USB Ethernet)

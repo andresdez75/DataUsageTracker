@@ -1,91 +1,91 @@
-# 📦 Data Model
+# Data Model
 
-Descripción de los datos que la app consulta, estructura y presenta al usuario. Todos los datos provienen de la API nativa de Android `NetworkStatsManager` y se obtienen en tiempo real — la app no persiste ningún dato propio en base de datos local.
+Description of the data the app queries, structures, and presents to the user. All data comes from the native Android API `NetworkStatsManager` and is obtained in real time — the app does not persist any of its own data in a local database.
 
 ---
 
-## Fuente de datos
+## Data source
 
-| Elemento              | Detalle                                                  |
+| Element               | Detail                                                   |
 |-----------------------|----------------------------------------------------------|
-| API Android           | `NetworkStatsManager` + `PackageManager`                 |
-| Permiso requerido     | `PACKAGE_USAGE_STATS`                                    |
-| Disponibilidad        | Android 6.0 (API 23) en adelante                         |
-| Persistencia propia   | Ninguna — consulta directa al sistema operativo          |
-| Retención del SO      | Android conserva histórico de hasta ~4 semanas           |
+| Android API           | `NetworkStatsManager` + `PackageManager`                 |
+| Required permission   | `PACKAGE_USAGE_STATS`                                    |
+| Availability          | Android 6.0 (API 23) and above                           |
+| Own persistence       | None — direct query to the operating system              |
+| OS retention          | Android keeps history for up to ~4 weeks                 |
 
 ---
 
-## Entidad principal: `AppUsageEntry`
+## Main entity: `AppUsageEntry`
 
-Representa el consumo de datos de **una aplicación** en un **periodo y tipo de red** determinados.
+Represents the data usage of **one application** for a given **period and network type**.
 
-| Campo           | Tipo     | Descripción                                                  | Ejemplo                        |
+| Field           | Type     | Description                                                  | Example                        |
 |-----------------|----------|--------------------------------------------------------------|--------------------------------|
-| `packageName`   | `String` | Identificador único de la app en el sistema Android          | `com.instagram.android`        |
-| `appName`       | `String` | Nombre visible de la app (obtenido via `PackageManager`)     | `Instagram`                    |
-| `uid`           | `Int`    | User ID del proceso asignado por Android                     | `10085`                        |
-| `networkType`   | `Enum`   | Tipo de red consultada: `ALL`, `MOBILE`, `WIFI`              | `MOBILE`                       |
-| `startTime`     | `Long`   | Inicio del periodo consultado (timestamp epoch ms)           | `1741824000000`                |
-| `endTime`       | `Long`   | Fin del periodo consultado (timestamp epoch ms)              | `1741910400000`                |
-| `fgRxBytes`     | `Long`   | Bytes **recibidos** en **foreground**                        | `52428800` (50 MB)             |
-| `fgTxBytes`     | `Long`   | Bytes **enviados** en **foreground**                         | `10485760` (10 MB)             |
-| `bgRxBytes`     | `Long`   | Bytes **recibidos** en **background**                        | `20971520` (20 MB)             |
-| `bgTxBytes`     | `Long`   | Bytes **enviados** en **background**                         | `5242880` (5 MB)               |
+| `packageName`   | `String` | Unique app identifier in the Android system                  | `com.instagram.android`        |
+| `appName`       | `String` | Visible app name (obtained via `PackageManager`)             | `Instagram`                    |
+| `uid`           | `Int`    | Process User ID assigned by Android                          | `10085`                        |
+| `networkType`   | `Enum`   | Network type queried: `ALL`, `MOBILE`, `WIFI`                | `MOBILE`                       |
+| `startTime`     | `Long`   | Start of the queried period (epoch ms timestamp)             | `1741824000000`                |
+| `endTime`       | `Long`   | End of the queried period (epoch ms timestamp)               | `1741910400000`                |
+| `fgRxBytes`     | `Long`   | Bytes **received** in **foreground**                         | `52428800` (50 MB)             |
+| `fgTxBytes`     | `Long`   | Bytes **sent** in **foreground**                             | `10485760` (10 MB)             |
+| `bgRxBytes`     | `Long`   | Bytes **received** in **background**                         | `20971520` (20 MB)             |
+| `bgTxBytes`     | `Long`   | Bytes **sent** in **background**                             | `5242880` (5 MB)               |
 
-### Campos derivados (calculados en app, no vienen del SO)
+### Derived fields (calculated in app, not from the OS)
 
-| Campo             | Fórmula                                        | Descripción                        |
+| Field             | Formula                                        | Description                        |
 |-------------------|------------------------------------------------|------------------------------------|
-| `fgTotalBytes`    | `fgRxBytes + fgTxBytes`                        | Total consumido en foreground      |
-| `bgTotalBytes`    | `bgRxBytes + bgTxBytes`                        | Total consumido en background      |
-| `totalBytes`      | `fgTotalBytes + bgTotalBytes`                  | Total consumido por la app         |
-| `bgRatio`         | `bgTotalBytes / totalBytes`                    | % del consumo que es background    |
+| `fgTotalBytes`    | `fgRxBytes + fgTxBytes`                        | Total consumed in foreground       |
+| `bgTotalBytes`    | `bgRxBytes + bgTxBytes`                        | Total consumed in background       |
+| `totalBytes`      | `fgTotalBytes + bgTotalBytes`                  | Total consumed by the app          |
+| `bgRatio`         | `bgTotalBytes / totalBytes`                    | % of usage that is background      |
 
 ---
 
-## Entidad agregada: `TotalUsageSummary`
+## Aggregated entity: `TotalUsageSummary`
 
-Representa el consumo **total del dispositivo** (suma de todas las apps) para un periodo y tipo de red. Se calcula agregando todos los `AppUsageEntry`.
+Represents the **total device usage** (sum of all apps) for a given period and network type. Calculated by aggregating all `AppUsageEntry` records.
 
-| Campo           | Tipo     | Descripción                                      |
+| Field           | Type     | Description                                      |
 |-----------------|----------|--------------------------------------------------|
-| `networkType`   | `Enum`   | Tipo de red: `ALL`, `MOBILE`, `WIFI`             |
-| `startTime`     | `Long`   | Inicio del periodo (timestamp epoch ms)          |
-| `endTime`       | `Long`   | Fin del periodo (timestamp epoch ms)             |
-| `fgTotalBytes`  | `Long`   | Total foreground de todas las apps               |
-| `bgTotalBytes`  | `Long`   | Total background de todas las apps               |
-| `totalBytes`    | `Long`   | Consumo total del dispositivo en el periodo      |
-| `appCount`      | `Int`    | Número de apps con consumo registrado            |
+| `networkType`   | `Enum`   | Network type: `ALL`, `MOBILE`, `WIFI`            |
+| `startTime`     | `Long`   | Start of the period (epoch ms timestamp)         |
+| `endTime`       | `Long`   | End of the period (epoch ms timestamp)            |
+| `fgTotalBytes`  | `Long`   | Total foreground across all apps                 |
+| `bgTotalBytes`  | `Long`   | Total background across all apps                 |
+| `totalBytes`    | `Long`   | Total device usage in the period                 |
+| `appCount`      | `Int`    | Number of apps with recorded usage               |
 
 ---
 
 ## Enum: `NetworkType`
 
-| Valor    | Constante Android                        | Descripción                        |
+| Value    | Android Constant                         | Description                        |
 |----------|------------------------------------------|------------------------------------|
-| `ALL`    | *(suma de MOBILE + WIFI)*                | Todo el consumo independiente de red|
-| `MOBILE` | `ConnectivityManager.TYPE_MOBILE`        | Solo datos móviles                 |
-| `WIFI`   | `ConnectivityManager.TYPE_WIFI`          | Solo Wi-Fi                         |
+| `ALL`    | *(sum of MOBILE + WIFI)*                 | All usage regardless of network    |
+| `MOBILE` | `ConnectivityManager.TYPE_MOBILE`        | Mobile data only                   |
+| `WIFI`   | `ConnectivityManager.TYPE_WIFI`          | Wi-Fi only                         |
 
 ---
 
 ## Enum: `TimePeriod`
 
-Periodos de consulta predefinidos que la app ofrece al usuario:
+Predefined query periods offered to the user:
 
-| Valor     | Descripción                                      |
+| Value     | Description                                      |
 |-----------|--------------------------------------------------|
-| `TODAY`   | Desde las 00:00 del día actual hasta ahora       |
-| `WEEK`    | Últimos 7 días                                   |
-| `MONTH`   | Últimos 30 días                                  |
+| `TODAY`   | From 00:00 of the current day until now           |
+| `WEEK`    | Last 7 days                                      |
+| `MONTH`   | Last 30 days                                     |
 
 ---
 
-## Notas importantes
+## Important notes
 
-- **Rx = Received (descarga)** / **Tx = Transmitted (subida)** — terminología estándar de Android
-- Los bytes vienen siempre en formato `Long` desde el SO; la conversión a KB/MB/GB se hace en la capa de presentación
-- Las apps del sistema también tienen `uid` y aparecen en los resultados; la app puede optar por filtrarlas o mostrarlas
-- Si una app no tiene consumo en el periodo, `NetworkStatsManager` no devuelve entrada para ella (no aparece con ceros)
-- El tipo `ALL` no es una consulta directa al SO — se obtiene sumando `MOBILE` + `WIFI` en la propia app
+- **Rx = Received (download)** / **Tx = Transmitted (upload)** — standard Android terminology
+- Bytes always come in `Long` format from the OS; conversion to KB/MB/GB is done in the presentation layer
+- System apps also have a `uid` and appear in results; the app can choose to filter or display them
+- If an app has no usage in the period, `NetworkStatsManager` does not return an entry for it (it does not appear with zeros)
+- The `ALL` type is not a direct OS query — it is obtained by summing `MOBILE` + `WIFI` within the app
