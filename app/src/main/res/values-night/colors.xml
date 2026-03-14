@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Texto en modo oscuro -->
+    <color name="text_primary">#F1F1F1</color>
+    <color name="text_secondary">#ABB2BA</color>
+
+    <!-- Fondo en modo oscuro -->
+    <color name="background_grey">#121212</color>
+    <color name="surface_white">#1E1E1E</color>
+</resources>

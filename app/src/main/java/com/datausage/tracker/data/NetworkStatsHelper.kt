@@ -1,0 +1,205 @@
+package com.datausage.tracker.data
+
+import android.app.AppOpsManager
+import android.app.usage.NetworkStats
+import android.app.usage.NetworkStatsManager
+import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.ConnectivityManager
+import android.os.Process
+import android.telephony.TelephonyManager
+import android.util.Log
+import com.datausage.tracker.model.AppUsageEntry
+import com.datausage.tracker.model.NetworkType
+import com.datausage.tracker.model.TimePeriod
+import com.datausage.tracker.model.TotalUsageSummary
+import java.util.Calendar
+
+class NetworkStatsHelper(private val context: Context) {
+
+    private val statsManager = context.getSystemService(Context.NETWORK_STATS_SERVICE) as NetworkStatsManager
+    private val packageManager = context.packageManager
+
+    // Solo apps que tienen icono en el launcher = apps instaladas por el usuario
+    private fun getUserInstalledUids(): Map<Int, String> {
+        val result = mutableMapOf<Int, String>()
+        try {
+            val intent = Intent(Intent.ACTION_MAIN).apply {
+                addCategory(Intent.CATEGORY_LAUNCHER)
+            }
+            val launcherApps = packageManager.queryIntentActivities(intent, 0)
+
+            for (resolveInfo in launcherApps) {
+                val packageName = resolveInfo.activityInfo.packageName
+                try {
+                    val appInfo = packageManager.getApplicationInfo(packageName, 0)
+                    result[appInfo.uid] = packageName
+                } catch (e: Exception) {
+                    continue
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("NetworkStats", "Error getting launcher apps", e)
+        }
+        return result
+    }
+
+    fun hasUsagePermission(): Boolean {
+        val appOps = context.getSystemService(Context.APP_OPS_SERVICE) as AppOpsManager
+        val mode = appOps.checkOpNoThrow(
+            AppOpsManager.OPSTR_GET_USAGE_STATS,
+            Process.myUid(),
+            context.packageName
+        )
+        return mode == AppOpsManager.MODE_ALLOWED
+    }
+
+    fun getTimeRange(period: TimePeriod): Pair<Long, Long> {
+        val end = System.currentTimeMillis()
+        val cal = Calendar.getInstance()
+        val start = when (period) {
+            TimePeriod.TODAY -> {
+                cal.set(Calendar.HOUR_OF_DAY, 0)
+                cal.set(Calendar.MINUTE, 0)
+                cal.set(Calendar.SECOND, 0)
+                cal.set(Calendar.MILLISECOND, 0)
+                cal.timeInMillis
+            }
+            TimePeriod.WEEK  -> end - 7L * 24 * 60 * 60 * 1000
+            TimePeriod.MONTH -> end - 30L * 24 * 60 * 60 * 1000
+        }
+        return Pair(start, end)
+    }
+
+    fun getAppUsageEntries(period: TimePeriod, networkType: NetworkType): List<AppUsageEntry> {
+        val (start, end) = getTimeRange(period)
+        val userUids = getUserInstalledUids()
+
+        return when (networkType) {
+            NetworkType.MOBILE -> queryEntries(start, end, ConnectivityManager.TYPE_MOBILE, networkType, userUids)
+            NetworkType.WIFI   -> queryEntries(start, end, ConnectivityManager.TYPE_WIFI, networkType, userUids)
+            NetworkType.ALL    -> mergeEntries(
+                queryEntries(start, end, ConnectivityManager.TYPE_MOBILE, NetworkType.ALL, userUids),
+                queryEntries(start, end, ConnectivityManager.TYPE_WIFI, NetworkType.ALL, userUids)
+            )
+        }.sortedByDescending { it.totalBytes }
+    }
+
+    fun getTotalUsageSummary(
+        entries: List<AppUsageEntry>,
+        period: TimePeriod,
+        networkType: NetworkType
+    ): TotalUsageSummary {
+        val (start, end) = getTimeRange(period)
+        return TotalUsageSummary(
+            networkType  = networkType,
+            startTime    = start,
+            endTime      = end,
+            fgTotalBytes = entries.sumOf { it.fgTotalBytes },
+            bgTotalBytes = entries.sumOf { it.bgTotalBytes },
+            appCount     = entries.size
+        )
+    }
+
+    private fun getSubscriberId(): String? {
+        return try {
+            val tm = context.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
+            tm.subscriberId
+        } catch (e: Exception) { null }
+    }
+
+    private fun queryEntries(
+        start: Long,
+        end: Long,
+        connectivityType: Int,
+        networkType: NetworkType,
+        userUids: Map<Int, String>
+    ): List<AppUsageEntry> {
+        val result = mutableMapOf<Int, AppUsageEntry>()
+
+        try {
+            val subscriberId = if (connectivityType == ConnectivityManager.TYPE_MOBILE) {
+                getSubscriberId()
+            } else null
+
+            val stats = statsManager.querySummary(connectivityType, subscriberId, start, end)
+            val bucket = NetworkStats.Bucket()
+
+            while (stats.hasNextBucket()) {
+                stats.getNextBucket(bucket)
+
+                val uid = bucket.uid
+                if (uid < 0) continue
+
+                // Solo UIDs de apps con icono en el launcher
+                val packageName = userUids[uid] ?: continue
+
+                val isForeground = bucket.state == NetworkStats.Bucket.STATE_FOREGROUND
+
+                val entry = result.getOrPut(uid) {
+                    val appName = try {
+                        val info = packageManager.getApplicationInfo(packageName, 0)
+                        packageManager.getApplicationLabel(info).toString()
+                    } catch (e: Exception) { packageName }
+
+                    AppUsageEntry(
+                        packageName = packageName,
+                        appName     = appName,
+                        uid         = uid,
+                        networkType = networkType,
+                        startTime   = start,
+                        endTime     = end,
+                        fgRxBytes   = 0L,
+                        fgTxBytes   = 0L,
+                        bgRxBytes   = 0L,
+                        bgTxBytes   = 0L
+                    )
+                }
+
+                result[uid] = if (isForeground) {
+                    entry.copy(
+                        fgRxBytes = entry.fgRxBytes + bucket.rxBytes,
+                        fgTxBytes = entry.fgTxBytes + bucket.txBytes
+                    )
+                } else {
+                    entry.copy(
+                        bgRxBytes = entry.bgRxBytes + bucket.rxBytes,
+                        bgTxBytes = entry.bgTxBytes + bucket.txBytes
+                    )
+                }
+            }
+            stats.close()
+
+        } catch (e: Exception) {
+            Log.e("NetworkStats", "Error querying stats", e)
+        }
+
+        return result.values.filter { it.totalBytes > 0 }
+    }
+
+    private fun mergeEntries(
+        mobile: List<AppUsageEntry>,
+        wifi: List<AppUsageEntry>
+    ): List<AppUsageEntry> {
+        val map = mutableMapOf<Int, AppUsageEntry>()
+
+        fun accumulate(entry: AppUsageEntry) {
+            val existing = map[entry.uid]
+            map[entry.uid] = if (existing == null) {
+                entry.copy(networkType = NetworkType.ALL)
+            } else {
+                existing.copy(
+                    fgRxBytes = existing.fgRxBytes + entry.fgRxBytes,
+                    fgTxBytes = existing.fgTxBytes + entry.fgTxBytes,
+                    bgRxBytes = existing.bgRxBytes + entry.bgRxBytes,
+                    bgTxBytes = existing.bgTxBytes + entry.bgTxBytes
+                )
+            }
+        }
+
+        mobile.forEach { accumulate(it) }
+        wifi.forEach   { accumulate(it) }
+        return map.values.toList()
+    }
+}
