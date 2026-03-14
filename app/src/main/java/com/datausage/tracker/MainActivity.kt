@@ -132,4 +132,17 @@ class MainActivity : AppCompatActivity() {
         tvAppCount.text = "${summary.appCount} apps"
     }
 
-    private fun showPermiss
+    private fun showPermissionScreen() {
+        layoutPermission.visibility = View.VISIBLE
+        layoutContent.visibility    = View.GONE
+    }
+
+    private fun showContent() {
+        layoutPermission.visibility = View.GONE
+        layoutContent.visibility    = View.VISIBLE
+    }
+
+    private fun openUsageSettings() {
+        startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS))
+    }
+}
