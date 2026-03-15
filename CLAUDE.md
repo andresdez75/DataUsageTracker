@@ -78,3 +78,55 @@ Aggregate of all apps for the device summary.
 ## How to build
 Open in Android Studio, sync Gradle, and run on an Android 6.0+ device.
 The user must grant the usage data access permission before seeing any data.
+
+---
+
+## v1.1.0 Roadmap
+
+**Current status**: v1.0.0 is stable with no known issues.
+
+### Planned features
+
+1. **English UI** — translate all user-facing text (strings.xml, layouts, code) to English
+2. **Tethering** — include the tethering/hotspot system app in the usage list (only system app that should appear)
+3. **Date range** — display "From DD/MM/YYYY to DD/MM/YYYY" in the device summary card showing the queried period
+4. **Sidebar menu** — hamburger/drawer menu with a JSON export option for the current filter data (values in MB)
+5. **Toolbar** — add the app icon and "Data Usage Tracker" title to the top toolbar
+
+### JSON export structure
+
+```json
+{
+  "generated_at": "2026-03-15T10:30:00Z",
+  "filter": {
+    "network_type": "ALL",
+    "period": "WEEK",
+    "date_from": "2026-03-08",
+    "date_to": "2026-03-15",
+    "date_from_display": "08/03/2026",
+    "date_to_display": "15/03/2026"
+  },
+  "summary": {
+    "total_mb": 1234.5,
+    "fg_total_mb": 800.0,
+    "bg_total_mb": 434.5,
+    "bg_ratio_pct": 35.2,
+    "app_count": 12
+  },
+  "apps": [
+    {
+      "rank": 1,
+      "package_name": "com.example.app",
+      "app_name": "Example App",
+      "fg_rx_mb": 100.0,
+      "fg_tx_mb": 50.0,
+      "fg_total_mb": 150.0,
+      "bg_rx_mb": 30.0,
+      "bg_tx_mb": 10.0,
+      "bg_total_mb": 40.0,
+      "total_mb": 190.0,
+      "bg_ratio_pct": 21.1
+    }
+  ]
+}
+```
