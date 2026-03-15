@@ -1,306 +1,306 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
     activity_main.xml
-    Dos estados: pantalla de permiso (layoutPermission) o contenido (layoutContent).
-    Decisión [002]: si no hay permiso PACKAGE_USAGE_STATS, solo se muestra el aviso.
+    Two states: permission screen (layoutPermission) or content (layoutContent).
+    Decision [002]: if PACKAGE_USAGE_STATS permission is missing, only the notice is shown.
 -->
-<LinearLayout
+<androidx.drawerlayout.widget.DrawerLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/main"
+    android:id="@+id/drawerLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:background="@color/background_grey"
     android:fitsSystemWindows="true">
 
-    <!-- ── TOOLBAR ─────────────────────────────────────────────────────── -->
-    <com.google.android.material.appbar.AppBarLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:elevation="4dp">
-
-        <androidx.appcompat.widget.Toolbar
-            android:id="@+id/toolbar"
-            android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            android:background="@color/primary_blue"
-            app:title="Data Usage Tracker"
-            app:titleTextColor="@android:color/white"/>
-    </com.google.android.material.appbar.AppBarLayout>
-
-    <!-- ── PANTALLA DE PERMISO ─────────────────────────────────────────── -->
+    <!-- ── MAIN CONTENT WRAPPER ──────────────────────────────────────────── -->
     <LinearLayout
-        android:id="@+id/layoutPermission"
+        android:id="@+id/main"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        android:gravity="center"
-        android:padding="32dp"
-        android:visibility="gone">
+        android:background="@color/background_grey">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="🔒"
-            android:textSize="56sp"
-            android:layout_marginBottom="16dp"/>
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Permiso necesario"
-            android:textSize="22sp"
-            android:textStyle="bold"
-            android:textColor="@color/text_primary"
-            android:layout_marginBottom="12dp"/>
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Esta app necesita acceso a las estadísticas de uso para medir el consumo foreground/background de cada app.\n\nVe a Ajustes → Apps → Acceso especial → Acceso a uso y actívalo para Data Usage Tracker."
-            android:textSize="14sp"
-            android:textColor="@color/text_secondary"
-            android:textAlignment="center"
-            android:lineSpacingMultiplier="1.4"
-            android:layout_marginBottom="32dp"/>
-
-        <Button
-            android:id="@+id/btnGrantPermission"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Abrir ajustes"
-            android:backgroundTint="@color/primary_blue"/>
-    </LinearLayout>
-
-    <!-- ── CONTENIDO PRINCIPAL ─────────────────────────────────────────── -->
-    <LinearLayout
-        android:id="@+id/layoutContent"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:visibility="gone">
-
-        <!-- Filtros: tipo de red -->
-        <com.google.android.material.chip.ChipGroup
-            android:id="@+id/chipGroupNetwork"
+        <!-- ── TOOLBAR ─────────────────────────────────────────────────────── -->
+        <com.google.android.material.appbar.AppBarLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingHorizontal="16dp"
-            android:paddingTop="12dp"
-            app:singleSelection="true"
-            app:selectionRequired="true">
+            android:elevation="4dp">
 
-            <com.google.android.material.chip.Chip
-                android:id="@+id/chipAll"
-                style="@style/Widget.Material3.Chip.Filter"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Todo"/>
+            <androidx.appcompat.widget.Toolbar
+                android:id="@+id/toolbar"
+                android:layout_width="match_parent"
+                android:layout_height="?attr/actionBarSize"
+                android:background="@color/toolbar_grey"
+                app:title="Data Usage Tracker"
+                app:titleTextColor="@android:color/white"/>
+        </com.google.android.material.appbar.AppBarLayout>
 
-            <com.google.android.material.chip.Chip
-                android:id="@+id/chipMobile"
-                style="@style/Widget.Material3.Chip.Filter"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Móvil"
-                android:checked="true"/>
-
-            <com.google.android.material.chip.Chip
-                android:id="@+id/chipWifi"
-                style="@style/Widget.Material3.Chip.Filter"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Wi-Fi"/>
-        </com.google.android.material.chip.ChipGroup>
-
-        <!-- Filtros: periodo -->
-        <com.google.android.material.chip.ChipGroup
-            android:id="@+id/chipGroupPeriod"
+        <!-- ── PERMISSION SCREEN ───────────────────────────────────────────── -->
+        <LinearLayout
+            android:id="@+id/layoutPermission"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingHorizontal="16dp"
-            android:paddingTop="4dp"
-            android:paddingBottom="8dp"
-            app:singleSelection="true"
-            app:selectionRequired="true">
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:padding="32dp"
+            android:visibility="gone">
 
-            <com.google.android.material.chip.Chip
-                android:id="@+id/chipToday"
-                style="@style/Widget.Material3.Chip.Filter"
+            <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Hoy"
-                android:checked="true"/>
+                android:text="🔒"
+                android:textSize="56sp"
+                android:layout_marginBottom="16dp"/>
 
-            <com.google.android.material.chip.Chip
-                android:id="@+id/chipWeek"
-                style="@style/Widget.Material3.Chip.Filter"
+            <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="7 días"/>
+                android:text="Permission required"
+                android:textSize="22sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_primary"
+                android:layout_marginBottom="12dp"/>
 
-            <com.google.android.material.chip.Chip
-                android:id="@+id/chipMonth"
-                style="@style/Widget.Material3.Chip.Filter"
+            <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="30 días"/>
-        </com.google.android.material.chip.ChipGroup>
+                android:text="This app needs access to usage statistics to measure foreground/background data usage for each app.\n\nGo to Settings → Apps → Special access → Usage data access and enable it for Data Usage Tracker."
+                android:textSize="14sp"
+                android:textColor="@color/text_secondary"
+                android:textAlignment="center"
+                android:lineSpacingMultiplier="1.4"
+                android:layout_marginBottom="32dp"/>
 
-        <!-- Tarjeta resumen agregado -->
-        <com.google.android.material.card.MaterialCardView
+            <Button
+                android:id="@+id/btnGrantPermission"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Open settings"
+                android:backgroundTint="@color/primary_blue"/>
+        </LinearLayout>
+
+        <!-- ── MAIN CONTENT ────────────────────────────────────────────────── -->
+        <LinearLayout
+            android:id="@+id/layoutContent"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginHorizontal="16dp"
-            android:layout_marginBottom="8dp"
-            app:cardElevation="2dp"
-            app:cardCornerRadius="12dp">
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:visibility="gone">
 
+            <!-- Aggregate summary card -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="16dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="8dp"
+                app:cardElevation="2dp"
+                app:cardCornerRadius="12dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_marginBottom="8dp">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Device summary"
+                            android:textSize="14sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/text_primary"/>
+
+                        <TextView
+                            android:id="@+id/tvAppCount"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textSize="12sp"
+                            android:textColor="@color/text_secondary"/>
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/tvDateRange"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textSize="12sp"
+                        android:textColor="@color/text_secondary"
+                        android:layout_marginBottom="8dp"/>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <!-- FG -->
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical"
+                            android:gravity="center">
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Foreground"
+                                android:textSize="11sp"
+                                android:textColor="@color/text_secondary"/>
+                            <TextView
+                                android:id="@+id/tvTotalFg"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textSize="16sp"
+                                android:textStyle="bold"
+                                android:textColor="@color/primary_blue"/>
+                        </LinearLayout>
+
+                        <!-- BG -->
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical"
+                            android:gravity="center">
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Background"
+                                android:textSize="11sp"
+                                android:textColor="@color/text_secondary"/>
+                            <TextView
+                                android:id="@+id/tvTotalBg"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textSize="16sp"
+                                android:textStyle="bold"
+                                android:textColor="@color/warning_orange"/>
+                        </LinearLayout>
+
+                        <!-- Total -->
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical"
+                            android:gravity="center">
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Total"
+                                android:textSize="11sp"
+                                android:textColor="@color/text_secondary"/>
+                            <TextView
+                                android:id="@+id/tvTotalAll"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textSize="16sp"
+                                android:textStyle="bold"
+                                android:textColor="@color/text_primary"/>
+                        </LinearLayout>
+
+                        <!-- % BG Global -->
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical"
+                            android:gravity="center">
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="% BG"
+                                android:textSize="11sp"
+                                android:textColor="@color/text_secondary"/>
+                            <TextView
+                                android:id="@+id/tvBgGlobal"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textSize="16sp"
+                                android:textStyle="bold"
+                                android:textColor="@color/warning_orange"/>
+                        </LinearLayout>
+                    </LinearLayout>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Filters row: Access, Date, Order -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="16dp">
+                android:orientation="horizontal"
+                android:paddingHorizontal="12dp"
+                android:paddingVertical="8dp">
 
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:layout_marginBottom="8dp">
+                <Spinner
+                    android:id="@+id/spinnerNetwork"
+                    android:layout_width="0dp"
+                    android:layout_height="40dp"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="4dp"
+                    android:background="@drawable/bg_spinner"
+                    android:popupBackground="@android:color/white"
+                    android:paddingStart="8dp"
+                    android:paddingEnd="4dp"/>
 
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="Resumen del dispositivo"
-                        android:textSize="14sp"
-                        android:textStyle="bold"
-                        android:textColor="@color/text_primary"/>
+                <Spinner
+                    android:id="@+id/spinnerPeriod"
+                    android:layout_width="0dp"
+                    android:layout_height="40dp"
+                    android:layout_weight="1"
+                    android:layout_marginHorizontal="4dp"
+                    android:background="@drawable/bg_spinner"
+                    android:popupBackground="@android:color/white"
+                    android:paddingStart="8dp"
+                    android:paddingEnd="4dp"/>
 
-                    <TextView
-                        android:id="@+id/tvAppCount"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:textSize="12sp"
-                        android:textColor="@color/text_secondary"/>
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal">
-
-                    <!-- FG -->
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:orientation="vertical"
-                        android:gravity="center">
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Foreground"
-                            android:textSize="11sp"
-                            android:textColor="@color/text_secondary"/>
-                        <TextView
-                            android:id="@+id/tvTotalFg"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:textSize="16sp"
-                            android:textStyle="bold"
-                            android:textColor="@color/primary_blue"/>
-                    </LinearLayout>
-
-                    <!-- BG -->
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:orientation="vertical"
-                        android:gravity="center">
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Background"
-                            android:textSize="11sp"
-                            android:textColor="@color/text_secondary"/>
-                        <TextView
-                            android:id="@+id/tvTotalBg"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:textSize="16sp"
-                            android:textStyle="bold"
-                            android:textColor="@color/warning_orange"/>
-                    </LinearLayout>
-
-                    <!-- Total -->
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:orientation="vertical"
-                        android:gravity="center">
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Total"
-                            android:textSize="11sp"
-                            android:textColor="@color/text_secondary"/>
-                        <TextView
-                            android:id="@+id/tvTotalAll"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:textSize="16sp"
-                            android:textStyle="bold"
-                            android:textColor="@color/text_primary"/>
-                    </LinearLayout>
-
-                    <!-- % BG Global -->
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:orientation="vertical"
-                        android:gravity="center">
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="% BG"
-                            android:textSize="11sp"
-                            android:textColor="@color/text_secondary"/>
-                        <TextView
-                            android:id="@+id/tvBgGlobal"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:textSize="16sp"
-                            android:textStyle="bold"
-                            android:textColor="@color/warning_orange"/>
-                    </LinearLayout>
-                </LinearLayout>
+                <Spinner
+                    android:id="@+id/spinnerSort"
+                    android:layout_width="0dp"
+                    android:layout_height="40dp"
+                    android:layout_weight="1"
+                    android:layout_marginStart="4dp"
+                    android:background="@drawable/bg_spinner"
+                    android:popupBackground="@android:color/white"
+                    android:paddingStart="8dp"
+                    android:paddingEnd="4dp"/>
             </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
 
-        <!-- Lista de apps -->
-        <TextView
-            android:id="@+id/tvEmptyState"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Sin datos para el periodo seleccionado"
-            android:textAlignment="center"
-            android:textColor="@color/text_secondary"
-            android:padding="32dp"
-            android:visibility="gone"/>
+            <!-- App list -->
+            <TextView
+                android:id="@+id/tvEmptyState"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="No data for the selected period"
+                android:textAlignment="center"
+                android:textColor="@color/text_secondary"
+                android:padding="32dp"
+                android:visibility="gone"/>
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/rvApps"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:clipToPadding="false"
-            android:paddingHorizontal="16dp"
-            android:paddingBottom="16dp"/>
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvApps"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:clipToPadding="false"
+                android:paddingHorizontal="16dp"
+                android:paddingBottom="16dp"/>
 
+        </LinearLayout>
     </LinearLayout>
-</LinearLayout>
+
+    <!-- ── NAVIGATION DRAWER ─────────────────────────────────────────────── -->
+    <com.google.android.material.navigation.NavigationView
+        android:id="@+id/navView"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_gravity="start"
+        app:menu="@menu/menu_drawer"/>
+
+</androidx.drawerlayout.widget.DrawerLayout>

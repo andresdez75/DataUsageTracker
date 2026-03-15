@@ -12,6 +12,7 @@
     <color name="text_secondary">#6B6B7B</color>
 
     <!-- Fondo -->
+    <color name="toolbar_grey">#616161</color>
     <color name="background_grey">#F4F6F9</color>
     <color name="surface_white">#FFFFFF</color>
 

@@ -17,9 +17,9 @@ import com.datausage.tracker.model.AppUsageEntry
 import com.datausage.tracker.util.ByteFormatter
 
 /**
- * Adapter para la lista principal de apps.
- * Usa ListAdapter + DiffUtil para actualizaciones eficientes
- * cuando el usuario cambia periodo o tipo de red.
+ * Adapter for the main app list.
+ * Uses ListAdapter + DiffUtil for efficient updates
+ * when the user changes period or network type.
  */
 class AppUsageAdapter : ListAdapter<AppUsageEntry, AppUsageAdapter.ViewHolder>(DiffCallback()) {
 
@@ -42,32 +42,41 @@ class AppUsageAdapter : ListAdapter<AppUsageEntry, AppUsageAdapter.ViewHolder>(D
         private val tvBg:        TextView   = view.findViewById(R.id.tvBgBytes)
         private val tvBgRatio:   TextView   = view.findViewById(R.id.tvBgRatio)
         private val progressBg:  ProgressBar = view.findViewById(R.id.progressBg)
+        private val tvSessions:  TextView   = view.findViewById(R.id.tvSessions)
 
         fun bind(entry: AppUsageEntry, rank: Int) {
-            // Icono de la app
+            // App icon
             ivIcon.setImageDrawable(getAppIcon(entry.packageName))
 
-            // Posición en el ranking
+            // Ranking position
             tvRank.text = "#$rank"
 
-            // Nombre
+            // Name
             tvName.text = entry.appName
 
-            // Bytes totales
+            // Total bytes
             tvTotal.text = ByteFormatter.format(entry.totalBytes)
 
             // Foreground / Background
             tvFg.text  = "FG: ${ByteFormatter.format(entry.fgTotalBytes)}"
             tvBg.text  = "BG: ${ByteFormatter.format(entry.bgTotalBytes)}"
 
-            // % background — métrica clave del producto (METRICS.md)
+            // % background — key product metric (METRICS.md)
             val bgPct = ByteFormatter.formatPercent(entry.bgRatio)
             tvBgRatio.text = "BG $bgPct"
 
-            // Barra de progreso visual del % background
+            // Sessions
+            if (entry.totalSessions > 0) {
+                tvSessions.visibility = View.VISIBLE
+                tvSessions.text = "${entry.totalSessions} sessions (${entry.activeSessions} > 5s)"
+            } else {
+                tvSessions.visibility = View.GONE
+            }
+
+            // Visual progress bar for % background
             progressBg.progress = (entry.bgRatio * 100).toInt()
 
-            // Apps con bgRatio > 50 % marcadas visualmente (METRICS.md nota)
+            // Apps with bgRatio > 50% visually highlighted (METRICS.md note)
             val ctx = itemView.context
             val color = if (entry.bgRatio > 0.5f) {
                 ContextCompat.getColor(ctx, R.color.warning_orange)
@@ -79,6 +88,12 @@ class AppUsageAdapter : ListAdapter<AppUsageEntry, AppUsageAdapter.ViewHolder>(D
         }
 
         private fun getAppIcon(packageName: String): Drawable? {
+            if (packageName == com.datausage.tracker.data.NetworkStatsHelper.TETHERING_PACKAGE) {
+                return ContextCompat.getDrawable(itemView.context, R.drawable.ic_tethering)
+            }
+            if (packageName == com.datausage.tracker.data.NetworkStatsHelper.SYSTEM_PACKAGE) {
+                return ContextCompat.getDrawable(itemView.context, R.drawable.ic_system)
+            }
             return try {
                 itemView.context.packageManager.getApplicationIcon(packageName)
             } catch (e: PackageManager.NameNotFoundException) {

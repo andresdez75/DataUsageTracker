@@ -21,7 +21,19 @@ class NetworkStatsHelper(private val context: Context) {
     private val statsManager = context.getSystemService(Context.NETWORK_STATS_SERVICE) as NetworkStatsManager
     private val packageManager = context.packageManager
 
-    // Solo apps que tienen icono en el launcher = apps instaladas por el usuario
+    companion object {
+        /** UID used by the OS to track tethering/hotspot traffic */
+        const val UID_TETHERING = -5
+        const val TETHERING_PACKAGE = "android.tethering"
+        const val TETHERING_LABEL = "Tethering / Hotspot"
+
+        /** Virtual UID to aggregate all non-listed system traffic */
+        const val UID_SYSTEM = -999
+        const val SYSTEM_PACKAGE = "android.system"
+        const val SYSTEM_LABEL = "System"
+    }
+
+    // Only apps with a launcher icon = user-installed apps
     private fun getUserInstalledUids(): Map<Int, String> {
         val result = mutableMapOf<Int, String>()
         try {
@@ -56,20 +68,25 @@ class NetworkStatsHelper(private val context: Context) {
     }
 
     fun getTimeRange(period: TimePeriod): Pair<Long, Long> {
-        val end = System.currentTimeMillis()
         val cal = Calendar.getInstance()
-        val start = when (period) {
-            TimePeriod.TODAY -> {
-                cal.set(Calendar.HOUR_OF_DAY, 0)
-                cal.set(Calendar.MINUTE, 0)
-                cal.set(Calendar.SECOND, 0)
-                cal.set(Calendar.MILLISECOND, 0)
-                cal.timeInMillis
+        cal.set(Calendar.HOUR_OF_DAY, 0)
+        cal.set(Calendar.MINUTE, 0)
+        cal.set(Calendar.SECOND, 0)
+        cal.set(Calendar.MILLISECOND, 0)
+        val todayMidnight = cal.timeInMillis
+
+        return when (period) {
+            TimePeriod.TODAY -> Pair(todayMidnight, System.currentTimeMillis())
+            TimePeriod.WEEK  -> {
+                cal.add(Calendar.DAY_OF_YEAR, -7)
+                Pair(cal.timeInMillis, todayMidnight)
             }
-            TimePeriod.WEEK  -> end - 7L * 24 * 60 * 60 * 1000
-            TimePeriod.MONTH -> end - 30L * 24 * 60 * 60 * 1000
+            TimePeriod.MONTH -> {
+                cal.timeInMillis = todayMidnight
+                cal.add(Calendar.DAY_OF_YEAR, -30)
+                Pair(cal.timeInMillis, todayMidnight)
+            }
         }
-        return Pair(start, end)
     }
 
     fun getAppUsageEntries(period: TimePeriod, networkType: NetworkType): List<AppUsageEntry> {
@@ -119,9 +136,8 @@ class NetworkStatsHelper(private val context: Context) {
         val result = mutableMapOf<Int, AppUsageEntry>()
 
         try {
-            val subscriberId = if (connectivityType == ConnectivityManager.TYPE_MOBILE) {
-                getSubscriberId()
-            } else null
+            val subscriberId = if (connectivityType == ConnectivityManager.TYPE_MOBILE)
+                getSubscriberId() else null
 
             val stats = statsManager.querySummary(connectivityType, subscriberId, start, end)
             val bucket = NetworkStats.Bucket()
@@ -129,19 +145,31 @@ class NetworkStatsHelper(private val context: Context) {
             while (stats.hasNextBucket()) {
                 stats.getNextBucket(bucket)
 
-                val uid = bucket.uid
-                if (uid < 0) continue
+                val rawUid = bucket.uid
 
-                // Solo UIDs de apps con icono en el launcher
-                val packageName = userUids[uid] ?: continue
+                // Determine effective UID and package name:
+                // - Tethering keeps its own UID
+                // - User apps keep their UID
+                // - Everything else is aggregated under UID_SYSTEM
+                val (uid, packageName) = when {
+                    rawUid == UID_TETHERING -> rawUid to TETHERING_PACKAGE
+                    rawUid >= 0 && userUids.containsKey(rawUid) -> rawUid to userUids[rawUid]!!
+                    else -> UID_SYSTEM to SYSTEM_PACKAGE
+                }
 
-                val isForeground = bucket.state == NetworkStats.Bucket.STATE_FOREGROUND
+                // Tethering exception: always classify as foreground
+                val isForeground = uid == UID_TETHERING ||
+                    bucket.state == NetworkStats.Bucket.STATE_FOREGROUND
 
                 val entry = result.getOrPut(uid) {
-                    val appName = try {
-                        val info = packageManager.getApplicationInfo(packageName, 0)
-                        packageManager.getApplicationLabel(info).toString()
-                    } catch (e: Exception) { packageName }
+                    val appName = when (uid) {
+                        UID_TETHERING -> TETHERING_LABEL
+                        UID_SYSTEM -> SYSTEM_LABEL
+                        else -> try {
+                            val info = packageManager.getApplicationInfo(packageName, 0)
+                            packageManager.getApplicationLabel(info).toString()
+                        } catch (e: Exception) { packageName }
+                    }
 
                     AppUsageEntry(
                         packageName = packageName,

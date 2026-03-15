@@ -3,20 +3,28 @@ package com.datausage.tracker.model
 // ─── Enums ────────────────────────────────────────────────────────────────────
 
 enum class NetworkType(val label: String) {
-    ALL("Todo"),
-    MOBILE("Móvil"),
+    ALL("All"),
+    MOBILE("Mobile"),
     WIFI("Wi-Fi")
 }
 
 enum class TimePeriod(val label: String) {
-    TODAY("Hoy"),
-    WEEK("7 días"),
-    MONTH("30 días")
+    TODAY("Today"),
+    WEEK("7 days"),
+    MONTH("30 days")
+}
+
+enum class SortOrder(val label: String) {
+    USAGE("Usage ↓"),
+    NAME("Name A-Z"),
+    SESSIONS("Sessions ↓"),
+    WITH_SESSIONS("With sessions"),
+    ACTIVE_5S("Active > 5s")
 }
 
 // ─── AppUsageEntry ─────────────────────────────────────────────────────────────
-// Representa el consumo de UNA app en un periodo y tipo de red determinados.
-// Campos raw vienen de NetworkStatsManager; los derivados se calculan aquí.
+// Represents the usage of ONE app in a given period and network type.
+// Raw fields come from NetworkStatsManager; derived fields are calculated here.
 
 data class AppUsageEntry(
     val packageName: String,
@@ -26,24 +34,28 @@ data class AppUsageEntry(
     val startTime: Long,
     val endTime: Long,
 
-    // Raw bytes desde el SO
-    val fgRxBytes: Long,   // Recibidos en foreground
-    val fgTxBytes: Long,   // Enviados en foreground
-    val bgRxBytes: Long,   // Recibidos en background
-    val bgTxBytes: Long    // Enviados en background
+    // Raw bytes from the OS
+    val fgRxBytes: Long,   // Received in foreground
+    val fgTxBytes: Long,   // Sent in foreground
+    val bgRxBytes: Long,   // Received in background
+    val bgTxBytes: Long,   // Sent in background
+
+    // Session data from UsageStatsManager
+    val totalSessions: Int = 0,      // Total times the app was opened
+    val activeSessions: Int = 0      // Sessions longer than 5 seconds
 ) {
-    // Campos derivados (DATA_MODEL.md § Campos derivados)
+    // Derived fields (DATA_MODEL.md § Derived fields)
     val fgTotalBytes: Long get() = fgRxBytes + fgTxBytes
     val bgTotalBytes: Long get() = bgRxBytes + bgTxBytes
     val totalBytes: Long   get() = fgTotalBytes + bgTotalBytes
 
-    /** Proporción del consumo que ocurre en background (0.0 – 1.0) */
+    /** Proportion of usage that occurs in background (0.0 – 1.0) */
     val bgRatio: Float
         get() = if (totalBytes == 0L) 0f else bgTotalBytes.toFloat() / totalBytes.toFloat()
 }
 
 // ─── TotalUsageSummary ─────────────────────────────────────────────────────────
-// Agregado de TODAS las apps para un periodo y tipo de red.
+// Aggregate of ALL apps for a given period and network type.
 
 data class TotalUsageSummary(
     val networkType: NetworkType,
@@ -55,7 +67,7 @@ data class TotalUsageSummary(
 ) {
     val totalBytes: Long get() = fgTotalBytes + bgTotalBytes
 
-    /** % background global del dispositivo */
+    /** Device-wide background % */
     val bgRatio: Float
         get() = if (totalBytes == 0L) 0f else bgTotalBytes.toFloat() / totalBytes.toFloat()
 }

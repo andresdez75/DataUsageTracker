@@ -14,19 +14,29 @@ Android app that measures mobile data usage differentiating **foreground** (app 
 ```
 app/src/main/java/com/datausage/tracker/
 ├── data/
-│   └── NetworkStatsHelper.kt   # All OS query logic
+│   ├── NetworkStatsHelper.kt   # Network usage queries (NetworkStatsManager)
+│   └── SessionStatsHelper.kt   # App session counts (UsageStatsManager)
 ├── model/
-│   └── Models.kt               # AppUsageEntry, TotalUsageSummary, enums
+│   └── Models.kt               # AppUsageEntry, TotalUsageSummary, enums (NetworkType, TimePeriod, SortOrder)
 ├── ui/
 │   ├── MainActivity.kt         # Main screen
 │   └── AppUsageAdapter.kt      # RecyclerView adapter
 └── util/
-    └── ByteFormatter.kt        # Byte conversion → B/KB/MB/GB
+    ├── ByteFormatter.kt        # Byte conversion → B/KB/MB/GB
+    └── JsonExporter.kt         # JSON export logic
 
 app/src/main/res/
+├── drawable/
+│   ├── bg_spinner.xml          # Spinner background with dropdown arrow
+│   ├── ic_dropdown_arrow.xml   # Dropdown arrow icon
+│   ├── ic_system.xml           # Gear icon for "System" entry
+│   └── ic_tethering.xml        # Tethering/hotspot icon
 ├── layout/
 │   ├── activity_main.xml       # Main layout
-│   └── item_app_usage.xml      # App list row
+│   ├── item_app_usage.xml      # App list row
+│   └── item_spinner.xml        # Custom spinner item layout
+├── menu/
+│   └── menu_drawer.xml         # Drawer menu items
 └── values/
     ├── colors.xml
     ├── strings.xml
@@ -48,6 +58,8 @@ Represents the usage of ONE app in a given period and network type:
 - `bgRxBytes`, `bgTxBytes` — background bytes
 - `fgTotalBytes`, `bgTotalBytes`, `totalBytes` — derived fields
 - `bgRatio` — background ratio (0.0–1.0). If > 0.5, highlighted in orange
+- `totalSessions` — number of times the app was opened (from UsageStatsManager)
+- `activeSessions` — sessions lasting more than 5 seconds
 
 ### TotalUsageSummary
 Aggregate of all apps for the device summary.
@@ -55,6 +67,7 @@ Aggregate of all apps for the device summary.
 ### Enums
 - `NetworkType`: ALL, MOBILE, WIFI
 - `TimePeriod`: TODAY, WEEK (7 days), MONTH (30 days)
+- `SortOrder`: USAGE, NAME, SESSIONS, WITH_SESSIONS, ACTIVE_5S
 
 ## Main logic — NetworkStatsHelper.kt
 - Uses `NetworkStatsManager.querySummary()` to get data from the OS
@@ -62,12 +75,25 @@ Aggregate of all apps for the device summary.
 - For `NetworkType.ALL`, sums MOBILE + WIFI (the OS has no ALL constant)
 - Mobile data may require `subscriberId` from `TelephonyManager`
 - App filtering uses `Intent.ACTION_MAIN + CATEGORY_LAUNCHER` to get only apps with a launcher icon (user apps)
+- Tethering (UID -5) is listed as its own entry with a dedicated icon
+- All other system UIDs are aggregated into a single "System" entry (UID -999)
+
+## Session tracking — SessionStatsHelper.kt
+- Uses `UsageStatsManager.queryEvents()` to count FOREGROUND → BACKGROUND transitions
+- Counts total sessions (app opened) and active sessions (duration > 5 seconds)
+- Helps identify apps that consume data in background without the user ever opening them
 
 ## Metrics displayed by the app
-- Per app: FG usage, BG usage, total, % background
-- Device summary: total FG, total BG, total, global BG %, app count
-- App ranking by total usage (highest to lowest)
+- Per app: FG usage, BG usage, total, % background, sessions (total and active > 5s)
+- Device summary: total FG, total BG, total, global BG %, app count, date range
+- Filters via 3 dropdown spinners: Access (network), Date (period), Order (sort/filter)
 - Units: B / KB / MB / GB with 1 decimal place
+
+## Date range logic
+- **Today**: from midnight today to now (current day only)
+- **7 days**: 7 complete days before today (midnight to midnight, today excluded)
+- **30 days**: 30 complete days before today (midnight to midnight, today excluded)
+- Display shows the actual inclusive dates (e.g., "From 08/03/2025 to 14/03/2025" for 7 days)
 
 ## Important technical decisions
 1. No external libraries — only native SDK + AndroidX + Material
@@ -81,17 +107,22 @@ The user must grant the usage data access permission before seeing any data.
 
 ---
 
-## v1.1.0 Roadmap
+## v1.1.0 Changelog
 
-**Current status**: v1.0.0 is stable with no known issues.
+### New features
+1. **English UI** — all user-facing text translated to English
+2. **Tethering** — included as its own entry with dedicated icon
+3. **System traffic** — all non-listed system UIDs aggregated into a single "System" entry so totals match the device's real usage
+4. **Date range** — device summary shows "From DD/MM/YYYY to DD/MM/YYYY"
+5. **Sidebar menu** — hamburger/drawer menu with JSON export of current filter data (values in MB)
+6. **Toolbar** — grey background with "Data Usage Tracker" title in white, no logo
+7. **Dropdown filters** — replaced chips with 3 spinners: Access (All/Mobile/Wi-Fi), Date (Today/7 days/30 days), Order (5 options)
+8. **Session tracking** — each app shows "X sessions (Y > 5s)" via UsageStatsManager
+9. **Sort/filter options** — Usage ↓, Name A-Z, Sessions ↓, With sessions, Active > 5s
 
-### Planned features
+### Special classification rules
 
-1. **English UI** — translate all user-facing text (strings.xml, layouts, code) to English
-2. **Tethering** — include the tethering/hotspot system app in the usage list (only system app that should appear)
-3. **Date range** — display "From DD/MM/YYYY to DD/MM/YYYY" in the device summary card showing the queried period
-4. **Sidebar menu** — hamburger/drawer menu with a JSON export option for the current filter data (values in MB)
-5. **Toolbar** — add the app icon and "Data Usage Tracker" title to the top toolbar
+- **Tethering is always classified as foreground (FG)**: the OS reports tethering traffic as background because it runs as a system service with no UI. However, tethering is user-initiated traffic (the user explicitly enables the hotspot), so it is reclassified as FG to avoid inflating background metrics. Without this exception, tethering would distort the BG ratio for both the app entry and the device summary.
 
 ### JSON export structure
 
@@ -102,9 +133,9 @@ The user must grant the usage data access permission before seeing any data.
     "network_type": "ALL",
     "period": "WEEK",
     "date_from": "2026-03-08",
-    "date_to": "2026-03-15",
+    "date_to": "2026-03-14",
     "date_from_display": "08/03/2026",
-    "date_to_display": "15/03/2026"
+    "date_to_display": "14/03/2026"
   },
   "summary": {
     "total_mb": 1234.5,

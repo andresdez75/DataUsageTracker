@@ -1,17 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Data Usage Tracker</string>
-    <string name="permission_title">Permiso necesario</string>
-    <string name="permission_body">Esta app necesita acceso a las estadísticas de uso para medir el consumo foreground/background de cada app.\n\nVe a Ajustes → Apps → Acceso especial → Acceso a uso y actívalo para Data Usage Tracker.</string>
-    <string name="btn_grant_permission">Abrir ajustes</string>
-    <string name="network_all">Todo</string>
-    <string name="network_mobile">Móvil</string>
+    <string name="permission_title">Permission required</string>
+    <string name="permission_body">This app needs access to usage statistics to measure foreground/background data usage for each app.\n\nGo to Settings → Apps → Special access → Usage data access and enable it for Data Usage Tracker.</string>
+    <string name="btn_grant_permission">Open settings</string>
+    <string name="network_all">All</string>
+    <string name="network_mobile">Mobile</string>
     <string name="network_wifi">Wi-Fi</string>
-    <string name="period_today">Hoy</string>
-    <string name="period_week">7 días</string>
-    <string name="period_month">30 días</string>
+    <string name="period_today">Today</string>
+    <string name="period_week">7 days</string>
+    <string name="period_month">30 days</string>
     <string name="summary_foreground">Foreground</string>
     <string name="summary_background">Background</string>
     <string name="summary_total">Total</string>
-    <string name="empty_state">Sin datos para el periodo seleccionado</string>
+    <string name="empty_state">No data for the selected period</string>
+    <string name="drawer_open">Open menu</string>
+    <string name="drawer_close">Close menu</string>
+    <string name="menu_export_json">Export JSON</string>
+    <string name="export_no_data">No data to export</string>
 </resources>

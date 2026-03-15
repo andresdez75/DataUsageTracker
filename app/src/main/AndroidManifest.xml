@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
     AndroidManifest.xml
-    Permiso PACKAGE_USAGE_STATS declarado según Decisión [002].
-    Es un permiso especial (appOp) — no se pide en runtime, el usuario
-    debe concederlo manualmente en Ajustes > Acceso especial > Acceso a uso.
+    PACKAGE_USAGE_STATS permission declared per Decision [002].
+    It's a special permission (appOp) — not requested at runtime, the user
+    must grant it manually in Settings > Special access > Usage data access.
 -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     package="com.datausage.tracker">
 
-    <!-- Permiso especial para NetworkStatsManager y UsageStatsManager -->
+    <!-- Special permission for NetworkStatsManager and UsageStatsManager -->
     <uses-permission
         android:name="android.permission.PACKAGE_USAGE_STATS"
         tools:ignore="ProtectedPermissions"/>
@@ -17,8 +17,8 @@
     <uses-permission
         android:name="android.permission.READ_PHONE_STATE"/>
 
-    <!-- Necesario desde Android 11 (API 30) para que queryIntentActivities
-         devuelva TODAS las apps con icono en el launcher -->
+    <!-- Required since Android 11 (API 30) so queryIntentActivities
+         returns ALL apps with a launcher icon -->
     <queries>
         <intent>
             <action android:name="android.intent.action.MAIN"/>
@@ -43,6 +43,16 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths"/>
+        </provider>
 
     </application>
 </manifest>

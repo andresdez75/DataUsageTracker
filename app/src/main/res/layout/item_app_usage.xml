@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
     item_app_usage.xml
-    Fila de la lista de apps con icono, nombre, consumo FG/BG y barra de progreso.
-    La barra de progreso representa visualmente el % de consumo en background.
+    App list row with icon, name, FG/BG usage and progress bar.
+    The progress bar visually represents the % of background usage.
 -->
 <com.google.android.material.card.MaterialCardView
     xmlns:android="http://schemas.android.com/apk/res/android"
@@ -19,7 +19,7 @@
         android:orientation="vertical"
         android:padding="12dp">
 
-        <!-- Fila superior: icono + nombre + total -->
+        <!-- Top row: icon + name + total -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -36,7 +36,7 @@
                 android:textColor="@color/text_secondary"
                 android:textAlignment="center"/>
 
-            <!-- Icono de la app -->
+            <!-- App icon -->
             <ImageView
                 android:id="@+id/ivAppIcon"
                 android:layout_width="40dp"
@@ -45,7 +45,7 @@
                 android:layout_marginEnd="12dp"
                 android:contentDescription="App icon"/>
 
-            <!-- Nombre de la app -->
+            <!-- App name -->
             <TextView
                 android:id="@+id/tvAppName"
                 android:layout_width="0dp"
@@ -57,7 +57,7 @@
                 android:maxLines="1"
                 android:ellipsize="end"/>
 
-            <!-- Consumo total -->
+            <!-- Total usage -->
             <TextView
                 android:id="@+id/tvTotalBytes"
                 android:layout_width="wrap_content"
@@ -67,7 +67,7 @@
                 android:textColor="@color/text_primary"/>
         </LinearLayout>
 
-        <!-- Fila inferior: FG / BG / % BG -->
+        <!-- Bottom row: FG / BG / % BG -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -99,7 +99,17 @@
                 android:textStyle="bold"/>
         </LinearLayout>
 
-        <!-- Barra de progreso: % consumo en background -->
+        <!-- Sessions -->
+        <TextView
+            android:id="@+id/tvSessions"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingStart="84dp"
+            android:layout_marginBottom="6dp"
+            android:textSize="11sp"
+            android:textColor="@color/text_secondary"/>
+
+        <!-- Progress bar: % background usage -->
         <ProgressBar
             android:id="@+id/progressBg"
             style="@style/Widget.AppCompat.ProgressBar.Horizontal"
