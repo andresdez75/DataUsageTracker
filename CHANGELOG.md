@@ -5,6 +5,28 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.1.0] — 2026-03-15
+
+### New features
+- **English UI** — all user-facing text translated to English
+- **Tethering entry** — tethering traffic shown as its own entry with dedicated icon
+- **System traffic** — all non-listed system UIDs aggregated into a single "System" entry so totals match real device usage
+- **Date range display** — device summary shows "From DD/MM/YYYY to DD/MM/YYYY"
+- **Sidebar menu** — hamburger/drawer menu with JSON export of current filter data (values in MB)
+- **Toolbar** — grey background with "Data Usage Tracker" title in white, no logo
+- **Dropdown filters** — replaced chips with 3 spinners: Access (All/Mobile/Wi-Fi), Date (Today/7 days/30 days), Order (5 options)
+- **Session tracking** — each app shows "X sessions (Y > 5s)" via UsageStatsManager
+- **Sort/filter options** — Usage ↓, Name A-Z, Sessions ↓, With sessions, Active > 5s
+
+### Special classification rules
+- **Tethering is always classified as foreground (FG)**: the OS reports tethering as background because it runs as a system service with no UI, but it is user-initiated traffic so it is reclassified as FG to avoid inflating background metrics
+
+### JSON export
+- Export current filter data as JSON via sidebar menu
+- Includes: generation timestamp, active filters, device summary, and per-app breakdown (all values in MB)
+
+---
+
 ## [1.0.0] — 2026-03
 
 ### First functional version
