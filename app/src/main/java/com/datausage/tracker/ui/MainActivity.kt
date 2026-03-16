@@ -368,19 +368,28 @@ class MainActivity : AppCompatActivity() {
                     entry.packageName, day.startTime, day.endTime
                 )
                 val value = sessions.total.toFloat()
-                val valueLabel = "${sessions.total} sess (${sessions.active} > 5s)"
+                val valueLabel = "${sessions.total}"
                 DailyBarChartView.BarData(label, value, valueLabel)
             } else {
                 val (value, valueLabel) = when (selectedSort) {
                     SortOrder.BG_TRAFFIC -> day.bgTotalBytes.toFloat() to ByteFormatter.format(day.bgTotalBytes)
-                    SortOrder.BG_PERCENT -> (day.bgRatio * 100f) to ByteFormatter.formatPercent(day.bgRatio)
+                    SortOrder.BG_PERCENT -> (day.bgRatio * 100f) to "%.0f%%".format(day.bgRatio * 100f)
                     else -> day.totalBytes.toFloat() to ByteFormatter.format(day.totalBytes)
                 }
                 DailyBarChartView.BarData(label, value, valueLabel)
             }
         }
 
+        val title = when (selectedSort) {
+            SortOrder.BG_TRAFFIC    -> "BG Traffic"
+            SortOrder.BG_PERCENT    -> "BG Percent (%)"
+            SortOrder.SESSION_ALL, SortOrder.WITH_SESSION,
+            SortOrder.NO_SESSION, SortOrder.SESSION_5S -> "Sessions"
+            else -> "Total Traffic"
+        }
+
         val chartView = DailyBarChartView(this)
+        chartView.setTitle(title)
         chartView.setData(barData)
         container.addView(chartView)
     }
