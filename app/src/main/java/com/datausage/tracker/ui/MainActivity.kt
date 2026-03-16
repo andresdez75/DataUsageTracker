@@ -369,7 +369,8 @@ class MainActivity : AppCompatActivity() {
                 val sessions = sessionHelper.getSessionCountForPackage(
                     entry.packageName, day.startTime, day.endTime
                 )
-                Triple(DailyBarChartView.BarData(label, sessions.total.toFloat(), "${sessions.total}"),
+                val count = if (selectedSort == SortOrder.SESSION_5S) sessions.active else sessions.total
+                Triple(DailyBarChartView.BarData(label, count.toFloat(), "$count"),
                     sessions.total > 0, day)
             } else {
                 val (value, valueLabel, hasData) = when (selectedSort) {
