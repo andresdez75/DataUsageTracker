@@ -228,12 +228,12 @@ class OnboardingActivity : AppCompatActivity() {
     private fun updateUsagePermissionStatus() {
         val tvStatus = container.findViewById<TextView>(R.id.tvUsageStatus) ?: return
         if (hasUsagePermission()) {
-            tvStatus.text = "Permission granted"
-            tvStatus.setTextColor(getColor(R.color.primary_blue))
-            btnAction.text = "Continue"
-            // Stop switch animation
+            // Auto-advance to next step
             switchAnimator?.let { handler.removeCallbacks(it) }
             container.findViewById<SwitchCompat>(R.id.switchDemo)?.isChecked = true
+            tvStatus.text = "Permission granted"
+            tvStatus.setTextColor(getColor(R.color.primary_blue))
+            handler.postDelayed({ showStep(2) }, 600)
         } else {
             tvStatus.text = "Permission not granted yet"
             tvStatus.setTextColor(getColor(R.color.warning_orange))
@@ -243,8 +243,8 @@ class OnboardingActivity : AppCompatActivity() {
 
     private fun updateBatteryStatus() {
         if (!isBatteryOptimized()) {
-            btnAction.text = "Finish Setup"
-            btnSkip.visibility = View.GONE
+            // Auto-finish when optimization is granted
+            finishOnboarding()
         } else {
             btnAction.text = "Enable Optimization"
         }
