@@ -76,6 +76,8 @@ class MainActivity : AppCompatActivity() {
     // Cached data for export
     private var lastEntries: List<AppUsageEntry> = emptyList()
     private var lastSummary: TotalUsageSummary? = null
+    private var lastMobileEntries: List<AppUsageEntry>? = null
+    private var lastWifiEntries: List<AppUsageEntry>? = null
 
     // ─── Lifecycle ────────────────────────────────────────────────────────────
 
@@ -226,9 +228,16 @@ class MainActivity : AppCompatActivity() {
         }
         val summary = helper.getTotalUsageSummary(entries, selectedPeriod, selectedNetwork)
 
-        // Cache for export
+        // Cache for export (separate mobile/wifi for ALL network split)
         lastEntries = entries
         lastSummary = summary
+        if (selectedNetwork == NetworkType.ALL) {
+            lastMobileEntries = helper.getAppUsageEntries(selectedPeriod, NetworkType.MOBILE)
+            lastWifiEntries = helper.getAppUsageEntries(selectedPeriod, NetworkType.WIFI)
+        } else {
+            lastMobileEntries = null
+            lastWifiEntries = null
+        }
 
         // App list
         adapter.submitList(entries)
@@ -263,7 +272,7 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
-        val json = JsonExporter.export(summary, lastEntries, selectedPeriod)
+        val json = JsonExporter.export(summary, lastEntries, selectedPeriod, lastMobileEntries, lastWifiEntries)
         val file = File(cacheDir, "data_usage_export.json")
         file.writeText(json)
 

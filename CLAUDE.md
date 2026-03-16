@@ -126,6 +126,8 @@ The user must grant the usage data access permission before seeing any data.
 
 ### JSON export structure
 
+When the filter is **ALL**, the JSON splits data by network type:
+
 ```json
 {
   "generated_at": "2026-03-15T10:30:00Z",
@@ -133,14 +135,20 @@ The user must grant the usage data access permission before seeing any data.
     "network_type": "ALL",
     "period": "WEEK",
     "date_from": "2026-03-08",
-    "date_to": "2026-03-14",
-    "date_from_display": "08/03/2026",
-    "date_to_display": "14/03/2026"
+    "date_to": "2026-03-14"
   },
   "summary": {
     "total_mb": 1234.5,
-    "fg_total_mb": 800.0,
-    "bg_total_mb": 434.5,
+    "mobile": {
+      "fg_total_mb": 500.0,
+      "bg_total_mb": 234.5,
+      "total_mb": 734.5
+    },
+    "wifi": {
+      "fg_total_mb": 300.0,
+      "bg_total_mb": 200.0,
+      "total_mb": 500.0
+    },
     "bg_ratio_pct": 35.2,
     "app_count": 12
   },
@@ -149,14 +157,62 @@ The user must grant the usage data access permission before seeing any data.
       "rank": 1,
       "package_name": "com.example.app",
       "app_name": "Example App",
-      "fg_rx_mb": 100.0,
-      "fg_tx_mb": 50.0,
-      "fg_total_mb": 150.0,
-      "bg_rx_mb": 30.0,
-      "bg_tx_mb": 10.0,
-      "bg_total_mb": 40.0,
+      "mobile": {
+        "fg_rx_mb": 60.0,
+        "fg_tx_mb": 30.0,
+        "fg_total_mb": 90.0,
+        "bg_rx_mb": 20.0,
+        "bg_tx_mb": 5.0,
+        "bg_total_mb": 25.0,
+        "total_mb": 115.0
+      },
+      "wifi": {
+        "fg_rx_mb": 40.0,
+        "fg_tx_mb": 20.0,
+        "fg_total_mb": 60.0,
+        "bg_rx_mb": 10.0,
+        "bg_tx_mb": 5.0,
+        "bg_total_mb": 15.0,
+        "total_mb": 75.0
+      },
       "total_mb": 190.0,
       "bg_ratio_pct": 21.1
+    }
+  ]
+}
+```
+
+When the filter is **MOBILE** or **WIFI**, the JSON is flat (no split):
+
+```json
+{
+  "generated_at": "2026-03-15T10:30:00Z",
+  "filter": {
+    "network_type": "MOBILE",
+    "period": "WEEK",
+    "date_from": "2026-03-08",
+    "date_to": "2026-03-14"
+  },
+  "summary": {
+    "total_mb": 734.5,
+    "fg_total_mb": 500.0,
+    "bg_total_mb": 234.5,
+    "bg_ratio_pct": 31.9,
+    "app_count": 10
+  },
+  "apps": [
+    {
+      "rank": 1,
+      "package_name": "com.example.app",
+      "app_name": "Example App",
+      "fg_rx_mb": 60.0,
+      "fg_tx_mb": 30.0,
+      "fg_total_mb": 90.0,
+      "bg_rx_mb": 20.0,
+      "bg_tx_mb": 5.0,
+      "bg_total_mb": 25.0,
+      "total_mb": 115.0,
+      "bg_ratio_pct": 21.7
     }
   ]
 }

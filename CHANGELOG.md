@@ -24,6 +24,7 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### JSON export
 - Export current filter data as JSON via sidebar menu
 - Includes: generation timestamp, active filters, device summary, and per-app breakdown (all values in MB)
+- **Mobile/Wi-Fi breakdown**: when filter is "All", the JSON splits summary and per-app data into separate `mobile` and `wifi` objects; when filter is "Mobile" or "Wi-Fi", the JSON remains flat
 
 ---
 
