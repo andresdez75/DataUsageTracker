@@ -20,7 +20,7 @@ object ByteFormatter {
             bytes < KB -> "$bytes B"
             bytes < MB -> "%.1f KB".format(bytes.toFloat() / KB)
             bytes < GB -> "%.1f MB".format(bytes.toFloat() / MB)
-            else       -> "%.1f GB".format(bytes.toFloat() / GB)
+            else       -> "%.2f GB".format(bytes.toFloat() / GB)
         }
     }
 

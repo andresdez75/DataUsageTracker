@@ -380,6 +380,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        val isSession = isSessionFilter
         val title = when (selectedSort) {
             SortOrder.BG_TRAFFIC    -> "BG Traffic"
             SortOrder.BG_PERCENT    -> "BG Percent (%)"
@@ -387,9 +388,11 @@ class MainActivity : AppCompatActivity() {
             SortOrder.NO_SESSION, SortOrder.SESSION_5S -> "Sessions"
             else -> "Total Traffic"
         }
+        val iconRes = if (isSession) R.drawable.ic_chart_sessions else R.drawable.ic_chart_traffic
 
         val chartView = DailyBarChartView(this)
         chartView.setTitle(title)
+        chartView.setIcon(iconRes)
         chartView.setData(barData)
         container.addView(chartView)
     }
