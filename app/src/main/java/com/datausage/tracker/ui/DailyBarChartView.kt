@@ -13,7 +13,8 @@ import androidx.core.content.ContextCompat
 /**
  * Horizontal bar chart for daily breakdown.
  * Black background, green (#B5FFB5) horizontal bars.
- * Title with icon at top, date labels on left, values on right.
+ * Title with icon at top left, aggregated total at top right.
+ * Optional subtitle for session limitation note.
  */
 class DailyBarChartView @JvmOverloads constructor(
     context: Context, attrs: AttributeSet? = null
@@ -24,6 +25,8 @@ class DailyBarChartView @JvmOverloads constructor(
     private var bars: List<BarData> = emptyList()
     private var maxValue: Float = 0f
     private var title: String = ""
+    private var subtitle: String = ""
+    private var totalLabel: String = ""
     private var iconDrawable: Drawable? = null
 
     private val bgPaint = Paint().apply { color = Color.BLACK }
@@ -32,8 +35,19 @@ class DailyBarChartView @JvmOverloads constructor(
     }
     private val titlePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = Color.WHITE
-        textSize = 30f
+        textSize = 34f
         textAlign = Paint.Align.LEFT
+        isFakeBoldText = true
+    }
+    private val subtitlePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = 0xFF888888.toInt()
+        textSize = 20f
+        textAlign = Paint.Align.LEFT
+    }
+    private val totalPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = 0xFFB5FFB5.toInt()
+        textSize = 30f
+        textAlign = Paint.Align.RIGHT
         isFakeBoldText = true
     }
     private val datePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -56,6 +70,17 @@ class DailyBarChartView @JvmOverloads constructor(
         invalidate()
     }
 
+    fun setSubtitle(text: String) {
+        subtitle = text
+        requestLayout()
+        invalidate()
+    }
+
+    fun setTotalLabel(text: String) {
+        totalLabel = text
+        invalidate()
+    }
+
     fun setIcon(resId: Int) {
         iconDrawable = ContextCompat.getDrawable(context, resId)?.mutate()
         iconDrawable?.setTint(Color.WHITE)
@@ -69,9 +94,15 @@ class DailyBarChartView @JvmOverloads constructor(
         invalidate()
     }
 
+    private fun getTitleAreaHeight(): Int {
+        var h = 70
+        if (subtitle.isNotEmpty()) h += 24
+        return h
+    }
+
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         val width = MeasureSpec.getSize(widthMeasureSpec)
-        val titleArea = 60
+        val titleArea = getTitleAreaHeight()
         val rowHeight = 48
         val bottomPad = 16
         val height = (titleArea + bars.size * rowHeight + bottomPad).coerceAtLeast(120)
@@ -81,7 +112,6 @@ class DailyBarChartView @JvmOverloads constructor(
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
 
-        // Black rounded background
         val bgRect = RectF(0f, 0f, width.toFloat(), height.toFloat())
         canvas.drawRoundRect(bgRect, 16f, 16f, bgPaint)
 
@@ -91,32 +121,43 @@ class DailyBarChartView @JvmOverloads constructor(
         val rightMargin = 20f
         val rowHeight = 48f
         val barHeight = 22f
-        val titleAreaBottom = 55f
+        val titleAreaBottom = getTitleAreaHeight().toFloat()
 
         // Icon + title
-        val iconSize = 36
+        val iconSize = 40
         val iconLeft = 20f
-        val titleX = iconLeft + iconSize + 10f
+        val titleX = iconLeft + iconSize + 12f
+        val titleY = 42f
 
         iconDrawable?.let { icon ->
-            val iconTop = ((titleAreaBottom - iconSize) / 2).toInt()
+            val iconTop = ((titleY - iconSize + 8) / 2 + 4).toInt()
             icon.setBounds(iconLeft.toInt(), iconTop, (iconLeft + iconSize).toInt(), iconTop + iconSize)
             icon.draw(canvas)
         }
 
         if (title.isNotEmpty()) {
-            canvas.drawText(title, titleX, 36f, titlePaint)
+            canvas.drawText(title, titleX, titleY, titlePaint)
         }
 
-        // Separator line
-        canvas.drawLine(16f, titleAreaBottom, width - 16f, titleAreaBottom, gridPaint)
+        // Total aggregated at top right
+        if (totalLabel.isNotEmpty()) {
+            canvas.drawText(totalLabel, width - 20f, titleY, totalPaint)
+        }
+
+        // Subtitle (session limitation note)
+        if (subtitle.isNotEmpty()) {
+            canvas.drawText(subtitle, iconLeft + 4, titleY + 24f, subtitlePaint)
+        }
+
+        // Separator line with more spacing
+        canvas.drawLine(16f, titleAreaBottom - 4, width - 16f, titleAreaBottom - 4, gridPaint)
 
         if (maxValue == 0f) return
 
         val maxBarWidth = width - leftMargin - rightMargin - 100f
 
         for ((index, bar) in bars.withIndex()) {
-            val y = titleAreaBottom + 8f + index * rowHeight
+            val y = titleAreaBottom + 4f + index * rowHeight
 
             // Grid line
             canvas.drawLine(leftMargin, y + rowHeight - 6, width - rightMargin, y + rowHeight - 6, gridPaint)

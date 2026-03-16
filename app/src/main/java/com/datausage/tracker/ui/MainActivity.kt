@@ -361,38 +361,89 @@ class MainActivity : AppCompatActivity() {
             SortOrder.NO_SESSION, SortOrder.SESSION_5S
         )
 
-        val barData = days.map { day ->
+        // Build bar data and detect days with actual data
+        val allBarData = days.map { day ->
             val label = dateFmt.format(Date(day.startTime))
             if (isSessionFilter) {
                 val sessions = sessionHelper.getSessionCountForPackage(
                     entry.packageName, day.startTime, day.endTime
                 )
-                val value = sessions.total.toFloat()
-                val valueLabel = "${sessions.total}"
-                DailyBarChartView.BarData(label, value, valueLabel)
+                Triple(DailyBarChartView.BarData(label, sessions.total.toFloat(), "${sessions.total}"),
+                    sessions.total > 0, day)
             } else {
-                val (value, valueLabel) = when (selectedSort) {
-                    SortOrder.BG_TRAFFIC -> day.bgTotalBytes.toFloat() to ByteFormatter.format(day.bgTotalBytes)
-                    SortOrder.BG_PERCENT -> (day.bgRatio * 100f) to "%.0f%%".format(day.bgRatio * 100f)
-                    else -> day.totalBytes.toFloat() to ByteFormatter.format(day.totalBytes)
+                val (value, valueLabel, hasData) = when (selectedSort) {
+                    SortOrder.BG_TRAFFIC -> Triple(day.bgTotalBytes.toFloat(), ByteFormatter.format(day.bgTotalBytes), day.bgTotalBytes > 0)
+                    SortOrder.BG_PERCENT -> Triple(day.bgRatio * 100f, "%.0f%%".format(day.bgRatio * 100f), day.totalBytes > 0)
+                    else -> Triple(day.totalBytes.toFloat(), ByteFormatter.format(day.totalBytes), day.totalBytes > 0)
                 }
-                DailyBarChartView.BarData(label, value, valueLabel)
+                Triple(DailyBarChartView.BarData(label, value, valueLabel), hasData, day)
             }
         }
 
-        val isSession = isSessionFilter
-        val title = when (selectedSort) {
-            SortOrder.BG_TRAFFIC    -> "BG Traffic"
-            SortOrder.BG_PERCENT    -> "BG Percent (%)"
-            SortOrder.SESSION_ALL, SortOrder.WITH_SESSION,
-            SortOrder.NO_SESSION, SortOrder.SESSION_5S -> "Sessions"
-            else -> "Total Traffic"
+        // For sessions: filter to only days that have session events available
+        // (UsageStatsManager only keeps ~7-10 days of events)
+        // For traffic: filter days with no traffic data at all (value 0 means no data recorded)
+        // But 0 CAN be valid for traffic if the OS recorded the day — we keep days within
+        // the range that the OS has data for.
+        // Heuristic: for sessions, trim leading days with 0 sessions (no event data).
+        // For traffic, keep all days that have any traffic entry from the OS.
+        val barData = if (isSessionFilter) {
+            // Find the first day that has session data and show from there
+            val firstWithData = allBarData.indexOfFirst { it.second }
+            if (firstWithData == -1) {
+                emptyList()
+            } else {
+                allBarData.subList(firstWithData, allBarData.size).map { it.first }
+            }
+        } else {
+            // For traffic, keep days where the OS returned data (totalBytes > 0 for the app)
+            // But also keep 0-value days that are between days with data
+            val withData = allBarData.map { it.first }
+            // Trim leading and trailing zeros (no OS data)
+            val firstNonZero = withData.indexOfFirst { it.value > 0 }
+            val lastNonZero = withData.indexOfLast { it.value > 0 }
+            if (firstNonZero == -1) {
+                emptyList()
+            } else {
+                withData.subList(firstNonZero, lastNonZero + 1)
+            }
         }
-        val iconRes = if (isSession) R.drawable.ic_chart_sessions else R.drawable.ic_chart_traffic
+
+        if (barData.isEmpty()) return
+
+        // Use the exact filter label as title
+        val title = selectedSort.label
+        val iconRes = if (isSessionFilter) R.drawable.ic_chart_sessions else R.drawable.ic_chart_traffic
+
+        // Calculate aggregated total
+        val totalLabel = if (isSessionFilter) {
+            val totalSessions = barData.sumOf { it.value.toInt() }
+            "$totalSessions sessions"
+        } else {
+            when (selectedSort) {
+                SortOrder.BG_TRAFFIC -> {
+                    val total = days.sumOf { it.bgTotalBytes }
+                    ByteFormatter.format(total)
+                }
+                SortOrder.BG_PERCENT -> {
+                    val totalAll = days.sumOf { it.totalBytes }
+                    val totalBg = days.sumOf { it.bgTotalBytes }
+                    if (totalAll > 0) "%.1f%%".format(totalBg.toFloat() / totalAll * 100f) else "0%"
+                }
+                else -> {
+                    val total = days.sumOf { it.totalBytes }
+                    ByteFormatter.format(total)
+                }
+            }
+        }
 
         val chartView = DailyBarChartView(this)
         chartView.setTitle(title)
         chartView.setIcon(iconRes)
+        chartView.setTotalLabel(totalLabel)
+        if (isSessionFilter) {
+            chartView.setSubtitle("Session history starts from install (~7 days initially)")
+        }
         chartView.setData(barData)
         container.addView(chartView)
     }
