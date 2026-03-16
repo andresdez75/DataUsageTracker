@@ -12,7 +12,7 @@
         android:id="@+id/ivLogo"
         android:layout_width="140dp"
         android:layout_height="140dp"
-        android:src="@drawable/ic_app_logo"
+        android:src="@drawable/ic_launcher_foreground"
         android:contentDescription="App logo"
         android:alpha="0"/>
 
