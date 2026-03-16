@@ -21,7 +21,9 @@ import com.datausage.tracker.util.ByteFormatter
  * Uses ListAdapter + DiffUtil for efficient updates
  * when the user changes period or network type.
  */
-class AppUsageAdapter : ListAdapter<AppUsageEntry, AppUsageAdapter.ViewHolder>(DiffCallback()) {
+class AppUsageAdapter(
+    private val onItemClick: ((AppUsageEntry) -> Unit)? = null
+) : ListAdapter<AppUsageEntry, AppUsageAdapter.ViewHolder>(DiffCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(parent.context)
@@ -30,7 +32,9 @@ class AppUsageAdapter : ListAdapter<AppUsageEntry, AppUsageAdapter.ViewHolder>(D
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        holder.bind(getItem(position), position + 1)
+        val entry = getItem(position)
+        holder.bind(entry, position + 1)
+        holder.itemView.setOnClickListener { onItemClick?.invoke(entry) }
     }
 
     inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {

@@ -13,9 +13,11 @@ import android.widget.TextView
 import android.widget.Toast
 import java.io.File
 import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 import androidx.appcompat.app.ActionBarDrawerToggle
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.core.content.FileProvider
@@ -62,12 +64,13 @@ class MainActivity : AppCompatActivity() {
     private lateinit var tvBgGlobal:          TextView
     private lateinit var tvAppCount:          TextView
     private lateinit var tvDateRange:         TextView
+    private lateinit var tvFilteredCount:     TextView
     private lateinit var tvEmptyState:        TextView
 
     // ─── State ────────────────────────────────────────────────────────────────
     private val helper         by lazy { NetworkStatsHelper(this) }
     private val sessionHelper  by lazy { com.datausage.tracker.data.SessionStatsHelper(this) }
-    private val adapter        by lazy { AppUsageAdapter() }
+    private val adapter        by lazy { AppUsageAdapter { entry -> showDailyBreakdown(entry) } }
 
     private var selectedNetwork = NetworkType.MOBILE
     private var selectedPeriod  = TimePeriod.TODAY
@@ -122,6 +125,7 @@ class MainActivity : AppCompatActivity() {
         tvBgGlobal         = findViewById(R.id.tvBgGlobal)
         tvAppCount         = findViewById(R.id.tvAppCount)
         tvDateRange        = findViewById(R.id.tvDateRange)
+        tvFilteredCount    = findViewById(R.id.tvFilteredCount)
         tvEmptyState       = findViewById(R.id.tvEmptyState)
     }
 
@@ -244,6 +248,10 @@ class MainActivity : AppCompatActivity() {
 
         // App list
         adapter.submitList(entries)
+        rvApps.scrollToPosition(0)
+
+        // Filtered count
+        tvFilteredCount.text = "Applications: ${entries.size}"
 
         // Empty state
         tvEmptyState.visibility = if (entries.isEmpty()) View.VISIBLE else View.GONE
@@ -286,6 +294,47 @@ class MainActivity : AppCompatActivity() {
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }
         startActivity(Intent.createChooser(shareIntent, getString(R.string.menu_export_json)))
+    }
+
+    // ─── Daily Breakdown ──────────────────────────────────────────────────────
+
+    private fun showDailyBreakdown(entry: AppUsageEntry) {
+        if (selectedPeriod == TimePeriod.TODAY) return
+
+        val days = helper.getDailyBreakdown(
+            entry.uid, entry.packageName, entry.appName,
+            selectedPeriod, selectedNetwork
+        )
+
+        val dateFmt = SimpleDateFormat("dd/MM", Locale.getDefault())
+        val sb = StringBuilder()
+
+        for (day in days) {
+            val date = dateFmt.format(Date(day.startTime))
+            val value = when (selectedSort) {
+                SortOrder.TOTAL_TRAFFIC -> ByteFormatter.format(day.totalBytes)
+                SortOrder.BG_TRAFFIC    -> "BG: ${ByteFormatter.format(day.bgTotalBytes)}"
+                SortOrder.BG_PERCENT    -> "BG: ${ByteFormatter.formatPercent(day.bgRatio)}"
+                SortOrder.SESSION_ALL, SortOrder.WITH_SESSION,
+                SortOrder.NO_SESSION, SortOrder.SESSION_5S ->
+                    ByteFormatter.format(day.totalBytes)
+                SortOrder.NAME          -> ByteFormatter.format(day.totalBytes)
+            }
+            sb.appendLine("$date  —  $value")
+        }
+
+        val title = when (selectedSort) {
+            SortOrder.TOTAL_TRAFFIC -> "Total Traffic"
+            SortOrder.BG_TRAFFIC    -> "BG Traffic"
+            SortOrder.BG_PERCENT    -> "BG Percent (%)"
+            else                    -> "Total Traffic"
+        }
+
+        AlertDialog.Builder(this)
+            .setTitle("${entry.appName} — $title")
+            .setMessage(sb.toString().trimEnd())
+            .setPositiveButton("OK", null)
+            .show()
     }
 
     // ─── Permission ──────────────────────────────────────────────────────────

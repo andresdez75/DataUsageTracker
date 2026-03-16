@@ -206,6 +206,86 @@ class NetworkStatsHelper(private val context: Context) {
         return result.values.filter { it.totalBytes > 0 }
     }
 
+    /**
+     * Returns a list of AppUsageEntry, one per day, for a specific app UID.
+     * Used to show daily breakdown when the user taps on an app card.
+     */
+    fun getDailyBreakdown(uid: Int, packageName: String, appName: String,
+                          period: TimePeriod, networkType: NetworkType): List<AppUsageEntry> {
+        val (start, end) = getTimeRange(period)
+        val dayMs = 24L * 60 * 60 * 1000
+        val days = mutableListOf<AppUsageEntry>()
+        val userUids = getUserInstalledUids()
+
+        var dayStart = start
+        while (dayStart < end) {
+            val dayEnd = minOf(dayStart + dayMs, end)
+
+            val dayEntry = when (networkType) {
+                NetworkType.MOBILE -> queryEntriesForUid(uid, packageName, appName, dayStart, dayEnd,
+                    ConnectivityManager.TYPE_MOBILE, networkType, userUids)
+                NetworkType.WIFI -> queryEntriesForUid(uid, packageName, appName, dayStart, dayEnd,
+                    ConnectivityManager.TYPE_WIFI, networkType, userUids)
+                NetworkType.ALL -> {
+                    val mobile = queryEntriesForUid(uid, packageName, appName, dayStart, dayEnd,
+                        ConnectivityManager.TYPE_MOBILE, NetworkType.ALL, userUids)
+                    val wifi = queryEntriesForUid(uid, packageName, appName, dayStart, dayEnd,
+                        ConnectivityManager.TYPE_WIFI, NetworkType.ALL, userUids)
+                    mobile.copy(
+                        fgRxBytes = mobile.fgRxBytes + wifi.fgRxBytes,
+                        fgTxBytes = mobile.fgTxBytes + wifi.fgTxBytes,
+                        bgRxBytes = mobile.bgRxBytes + wifi.bgRxBytes,
+                        bgTxBytes = mobile.bgTxBytes + wifi.bgTxBytes
+                    )
+                }
+            }
+            days.add(dayEntry)
+            dayStart = dayEnd
+        }
+        return days
+    }
+
+    private fun queryEntriesForUid(
+        targetUid: Int, packageName: String, appName: String,
+        start: Long, end: Long, connectivityType: Int,
+        networkType: NetworkType, userUids: Map<Int, String>
+    ): AppUsageEntry {
+        var fgRx = 0L; var fgTx = 0L; var bgRx = 0L; var bgTx = 0L
+        try {
+            val subscriberId = if (connectivityType == ConnectivityManager.TYPE_MOBILE)
+                getSubscriberId() else null
+            val stats = statsManager.querySummary(connectivityType, subscriberId, start, end)
+            val bucket = NetworkStats.Bucket()
+
+            while (stats.hasNextBucket()) {
+                stats.getNextBucket(bucket)
+                val rawUid = bucket.uid
+                val effectiveUid = when {
+                    rawUid == UID_TETHERING -> UID_TETHERING
+                    rawUid >= 0 && userUids.containsKey(rawUid) -> rawUid
+                    else -> UID_SYSTEM
+                }
+                if (effectiveUid != targetUid) continue
+
+                val isForeground = effectiveUid == UID_TETHERING ||
+                    bucket.state == NetworkStats.Bucket.STATE_FOREGROUND
+                if (isForeground) {
+                    fgRx += bucket.rxBytes; fgTx += bucket.txBytes
+                } else {
+                    bgRx += bucket.rxBytes; bgTx += bucket.txBytes
+                }
+            }
+            stats.close()
+        } catch (e: Exception) {
+            Log.e("NetworkStats", "Error querying daily stats", e)
+        }
+        return AppUsageEntry(
+            packageName = packageName, appName = appName, uid = targetUid,
+            networkType = networkType, startTime = start, endTime = end,
+            fgRxBytes = fgRx, fgTxBytes = fgTx, bgRxBytes = bgRx, bgTxBytes = bgTx
+        )
+    }
+
     private fun mergeEntries(
         mobile: List<AppUsageEntry>,
         wifi: List<AppUsageEntry>
