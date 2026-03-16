@@ -239,9 +239,9 @@ class MainActivity : AppCompatActivity() {
             SortOrder.BG_TRAFFIC    -> enriched.sortedByDescending { it.bgTotalBytes }
             SortOrder.BG_PERCENT    -> enriched.sortedByDescending { it.bgRatio }
             SortOrder.SESSION_ALL   -> enriched.sortedByDescending { it.totalSessions }
-            SortOrder.WITH_SESSION  -> enriched.filter { it.totalSessions > 0 }.sortedByDescending { it.totalBytes }
+            SortOrder.WITH_SESSION  -> enriched.filter { it.totalSessions > 0 }.sortedByDescending { it.totalSessions }
             SortOrder.NO_SESSION    -> enriched.filter { it.totalSessions == 0 }.sortedByDescending { it.totalBytes }
-            SortOrder.SESSION_5S    -> enriched.filter { it.activeSessions > 0 }.sortedByDescending { it.totalBytes }
+            SortOrder.SESSION_5S    -> enriched.filter { it.activeSessions > 0 }.sortedByDescending { it.activeSessions }
             SortOrder.NAME          -> enriched.sortedBy { it.appName.lowercase() }
         }
         val summary = helper.getTotalUsageSummary(entries, selectedPeriod, selectedNetwork)
