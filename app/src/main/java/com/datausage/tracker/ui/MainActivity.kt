@@ -72,6 +72,7 @@ class MainActivity : AppCompatActivity() {
     // ─── State ────────────────────────────────────────────────────────────────
     private val helper         by lazy { NetworkStatsHelper(this) }
     private val sessionHelper  by lazy { com.datausage.tracker.data.SessionStatsHelper(this) }
+    private val sessionDb      by lazy { com.datausage.tracker.data.SessionDatabase(this) }
     private val adapter        by lazy { AppUsageAdapter { entry, container -> showDailyBreakdown(entry, container) } }
 
     private var selectedNetwork = NetworkType.MOBILE
@@ -230,6 +231,9 @@ class MainActivity : AppCompatActivity() {
             else entry
         }
 
+        // Persist daily sessions to local DB for long-term history
+        persistDailySessions(start, end)
+
         val entries = when (selectedSort) {
             SortOrder.TOTAL_TRAFFIC -> enriched.sortedByDescending { it.totalBytes }
             SortOrder.BG_TRAFFIC    -> enriched.sortedByDescending { it.bgTotalBytes }
@@ -347,6 +351,25 @@ class MainActivity : AppCompatActivity() {
         spinnerPeriod.setSelection(periodValues.indexOf(selectedPeriod))
     }
 
+    // ─── Session Persistence ───────────────────────────────────────────────────
+
+    /**
+     * Persist daily session counts from UsageStatsManager to local DB.
+     * Iterates day by day and saves each day's session data.
+     */
+    private fun persistDailySessions(start: Long, end: Long) {
+        val dayMs = 24L * 60 * 60 * 1000
+        var dayStart = start
+        while (dayStart < end) {
+            val dayEnd = minOf(dayStart + dayMs, end)
+            val daySessions = sessionHelper.getSessionCounts(dayStart, dayEnd)
+            if (daySessions.isNotEmpty()) {
+                sessionDb.saveBulkDailySessions(dayStart, daySessions)
+            }
+            dayStart = dayEnd
+        }
+    }
+
     // ─── Daily Breakdown ──────────────────────────────────────────────────────
 
     private fun showDailyBreakdown(entry: AppUsageEntry, container: FrameLayout) {
@@ -363,53 +386,44 @@ class MainActivity : AppCompatActivity() {
             SortOrder.NO_SESSION, SortOrder.SESSION_5S
         )
 
-        // Build bar data and detect days with actual data
-        val allBarData = days.map { day ->
-            val label = dateFmt.format(Date(day.startTime))
-            if (isSessionFilter) {
-                val sessions = sessionHelper.getSessionCountForPackage(
-                    entry.packageName, day.startTime, day.endTime
-                )
+        // Build bar data
+        val dayMs = 24L * 60 * 60 * 1000
+        val barData: List<DailyBarChartView.BarData>
+
+        if (isSessionFilter) {
+            // Use local DB for session history (covers beyond OS ~7-day limit)
+            val dbData = sessionDb.getDailySessionsInRange(
+                entry.packageName, days.first().startTime, days.last().endTime
+            )
+            val allBars = days.mapNotNull { day ->
+                val dateKey = sessionDb.formatDate(day.startTime)
+                val label = dateFmt.format(Date(day.startTime))
+                // Try DB first, then live data
+                val sessions = dbData[dateKey]
+                    ?: sessionHelper.getSessionCountForPackage(entry.packageName, day.startTime, day.endTime)
                 val count = if (selectedSort == SortOrder.SESSION_5S) sessions.active else sessions.total
                 Triple(DailyBarChartView.BarData(label, count.toFloat(), "$count"),
-                    sessions.total > 0, day)
-            } else {
-                val (value, valueLabel, hasData) = when (selectedSort) {
-                    SortOrder.BG_TRAFFIC -> Triple(day.bgTotalBytes.toFloat(), ByteFormatter.format(day.bgTotalBytes), day.bgTotalBytes > 0)
-                    SortOrder.BG_PERCENT -> Triple(day.bgRatio * 100f, "%.0f%%".format(day.bgRatio * 100f), day.totalBytes > 0)
-                    else -> Triple(day.totalBytes.toFloat(), ByteFormatter.format(day.totalBytes), day.totalBytes > 0)
-                }
-                Triple(DailyBarChartView.BarData(label, value, valueLabel), hasData, day)
+                    sessions.total > 0 || dbData.containsKey(dateKey), day)
             }
-        }
-
-        // For sessions: filter to only days that have session events available
-        // (UsageStatsManager only keeps ~7-10 days of events)
-        // For traffic: filter days with no traffic data at all (value 0 means no data recorded)
-        // But 0 CAN be valid for traffic if the OS recorded the day — we keep days within
-        // the range that the OS has data for.
-        // Heuristic: for sessions, trim leading days with 0 sessions (no event data).
-        // For traffic, keep all days that have any traffic entry from the OS.
-        val barData = if (isSessionFilter) {
-            // Find the first day that has session data and show from there
-            val firstWithData = allBarData.indexOfFirst { it.second }
-            if (firstWithData == -1) {
-                emptyList()
-            } else {
-                allBarData.subList(firstWithData, allBarData.size).map { it.first }
-            }
+            // Show from first day with data
+            val firstWithData = allBars.indexOfFirst { it.second }
+            barData = if (firstWithData == -1) emptyList()
+            else allBars.subList(firstWithData, allBars.size).map { it.first }
         } else {
-            // For traffic, keep days where the OS returned data (totalBytes > 0 for the app)
-            // But also keep 0-value days that are between days with data
-            val withData = allBarData.map { it.first }
-            // Trim leading and trailing zeros (no OS data)
-            val firstNonZero = withData.indexOfFirst { it.value > 0 }
-            val lastNonZero = withData.indexOfLast { it.value > 0 }
-            if (firstNonZero == -1) {
-                emptyList()
-            } else {
-                withData.subList(firstNonZero, lastNonZero + 1)
+            // Traffic data — trim leading/trailing empty days
+            val allBars = days.map { day ->
+                val label = dateFmt.format(Date(day.startTime))
+                val (value, valueLabel) = when (selectedSort) {
+                    SortOrder.BG_TRAFFIC -> day.bgTotalBytes.toFloat() to ByteFormatter.format(day.bgTotalBytes)
+                    SortOrder.BG_PERCENT -> (day.bgRatio * 100f) to "%.0f%%".format(day.bgRatio * 100f)
+                    else -> day.totalBytes.toFloat() to ByteFormatter.format(day.totalBytes)
+                }
+                DailyBarChartView.BarData(label, value, valueLabel)
             }
+            val firstNonZero = allBars.indexOfFirst { it.value > 0 }
+            val lastNonZero = allBars.indexOfLast { it.value > 0 }
+            barData = if (firstNonZero == -1) emptyList()
+            else allBars.subList(firstNonZero, lastNonZero + 1)
         }
 
         if (barData.isEmpty()) return
