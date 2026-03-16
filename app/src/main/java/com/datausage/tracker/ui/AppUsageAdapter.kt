@@ -92,7 +92,7 @@ class AppUsageAdapter(
 
         fun bind(entry: AppUsageEntry, rank: Int) {
             ivIcon.setImageDrawable(getAppIcon(entry.packageName))
-            tvRank.text = "#$rank"
+            tvRank.text = "$rank"
             tvName.text = entry.appName
             tvTotal.text = ByteFormatter.format(entry.totalBytes)
             tvFg.text  = "FG: ${ByteFormatter.format(entry.fgTotalBytes)}"

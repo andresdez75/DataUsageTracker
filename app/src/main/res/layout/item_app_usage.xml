@@ -30,11 +30,12 @@
             <!-- Ranking -->
             <TextView
                 android:id="@+id/tvRank"
-                android:layout_width="28dp"
+                android:layout_width="22dp"
                 android:layout_height="wrap_content"
                 android:textSize="11sp"
                 android:textColor="@color/text_secondary"
-                android:textAlignment="center"/>
+                android:textAlignment="center"
+                android:gravity="top"/>
 
             <!-- App icon -->
             <ImageView
@@ -72,7 +73,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:paddingStart="84dp"
+            android:paddingStart="78dp"
             android:layout_marginBottom="6dp">
 
             <TextView
@@ -104,7 +105,7 @@
             android:id="@+id/tvSessions"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingStart="84dp"
+            android:paddingStart="78dp"
             android:layout_marginBottom="6dp"
             android:textSize="11sp"
             android:textColor="@color/text_secondary"/>
@@ -115,7 +116,7 @@
             style="@style/Widget.AppCompat.ProgressBar.Horizontal"
             android:layout_width="match_parent"
             android:layout_height="6dp"
-            android:layout_marginStart="84dp"
+            android:layout_marginStart="78dp"
             android:max="100"
             android:progress="0"/>
 
@@ -124,9 +125,8 @@
             android:id="@+id/ivChartHint"
             android:layout_width="16dp"
             android:layout_height="16dp"
-            android:layout_gravity="end"
             android:layout_marginTop="6dp"
-            android:layout_marginEnd="4dp"
+            android:layout_marginStart="78dp"
             android:src="@drawable/ic_bar_chart"
             android:contentDescription="View daily chart"/>
 
