@@ -67,6 +67,14 @@ class NetworkStatsHelper(private val context: Context) {
         return mode == AppOpsManager.MODE_ALLOWED
     }
 
+    private var customStartTime: Long = 0L
+    private var customEndTime: Long = 0L
+
+    fun setCustomRange(start: Long, end: Long) {
+        customStartTime = start
+        customEndTime = end
+    }
+
     fun getTimeRange(period: TimePeriod): Pair<Long, Long> {
         val cal = Calendar.getInstance()
         cal.set(Calendar.HOUR_OF_DAY, 0)
@@ -86,6 +94,7 @@ class NetworkStatsHelper(private val context: Context) {
                 cal.add(Calendar.DAY_OF_YEAR, -30)
                 Pair(cal.timeInMillis, todayMidnight)
             }
+            TimePeriod.CUSTOM -> Pair(customStartTime, customEndTime)
         }
     }
 

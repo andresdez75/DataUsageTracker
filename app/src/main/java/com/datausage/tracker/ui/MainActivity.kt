@@ -32,6 +32,9 @@ import com.datausage.tracker.model.TimePeriod
 import com.datausage.tracker.model.TotalUsageSummary
 import com.datausage.tracker.util.ByteFormatter
 import com.datausage.tracker.util.JsonExporter
+import com.google.android.material.datepicker.CalendarConstraints
+import com.google.android.material.datepicker.DateValidatorPointBackward
+import com.google.android.material.datepicker.MaterialDatePicker
 import com.google.android.material.navigation.NavigationView
 
 /**
@@ -181,8 +184,13 @@ class MainActivity : AppCompatActivity() {
         spinnerPeriod.setSelection(periodValues.indexOf(selectedPeriod))
         spinnerPeriod.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>?, v: View?, pos: Int, id: Long) {
-                selectedPeriod = periodValues[pos]
-                loadData()
+                val period = periodValues[pos]
+                if (period == TimePeriod.CUSTOM) {
+                    showDateRangePicker()
+                } else {
+                    selectedPeriod = period
+                    loadData()
+                }
             }
             override fun onNothingSelected(parent: AdapterView<*>?) {}
         }
@@ -265,7 +273,7 @@ class MainActivity : AppCompatActivity() {
         tvBgGlobal.text = ByteFormatter.formatPercent(summary.bgRatio)
         tvAppCount.text = "${summary.appCount} apps"
 
-        // Date range — for WEEK/MONTH the end is midnight, so display the previous day
+        // Date range — for WEEK/MONTH/CUSTOM the end is midnight, so display the previous day
         val fmt = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
         val displayEnd = if (selectedPeriod == TimePeriod.TODAY) {
             summary.endTime
@@ -295,6 +303,46 @@ class MainActivity : AppCompatActivity() {
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }
         startActivity(Intent.createChooser(shareIntent, getString(R.string.menu_export_json)))
+    }
+
+    // ─── Date Range Picker ─────────────────────────────────────────────────────
+
+    private fun showDateRangePicker() {
+        val constraintsBuilder = CalendarConstraints.Builder()
+            .setValidator(DateValidatorPointBackward.now())
+
+        val picker = MaterialDatePicker.Builder.dateRangePicker()
+            .setTitleText("Select date range")
+            .setCalendarConstraints(constraintsBuilder.build())
+            .setTheme(com.google.android.material.R.style.ThemeOverlay_MaterialComponents_MaterialCalendar)
+            .build()
+
+        picker.addOnPositiveButtonClickListener { selection ->
+            val startUtc = selection.first ?: return@addOnPositiveButtonClickListener
+            val endUtc = selection.second ?: return@addOnPositiveButtonClickListener
+
+            // MaterialDatePicker returns UTC midnight — add 1 day to end to make it inclusive
+            val endInclusive = endUtc + 24L * 60 * 60 * 1000
+
+            helper.setCustomRange(startUtc, endInclusive)
+            selectedPeriod = TimePeriod.CUSTOM
+            loadData()
+        }
+
+        picker.addOnNegativeButtonClickListener {
+            revertPeriodSpinner()
+        }
+
+        picker.addOnCancelListener {
+            revertPeriodSpinner()
+        }
+
+        picker.show(supportFragmentManager, "dateRangePicker")
+    }
+
+    private fun revertPeriodSpinner() {
+        val periodValues = TimePeriod.values()
+        spinnerPeriod.setSelection(periodValues.indexOf(selectedPeriod))
     }
 
     // ─── Daily Breakdown ──────────────────────────────────────────────────────

@@ -11,7 +11,8 @@ enum class NetworkType(val label: String) {
 enum class TimePeriod(val label: String) {
     TODAY("Today"),
     WEEK("7 days"),
-    MONTH("30 days")
+    MONTH("30 days"),
+    CUSTOM("Customize")
 }
 
 enum class SortOrder(val label: String) {
