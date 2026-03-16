@@ -42,7 +42,7 @@ class AppUsageAdapter(
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val entry = getItem(position)
-        holder.bind(entry, position + 1)
+        holder.bind(entry)
 
         // Chart hint icon visibility
         holder.ivChartHint.visibility = if (chartAvailable && expandedUid != entry.uid) View.VISIBLE else View.GONE
@@ -79,7 +79,6 @@ class AppUsageAdapter(
 
     inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         private val ivIcon:      ImageView   = view.findViewById(R.id.ivAppIcon)
-        private val tvRank:      TextView    = view.findViewById(R.id.tvRank)
         private val tvName:      TextView    = view.findViewById(R.id.tvAppName)
         private val tvTotal:     TextView    = view.findViewById(R.id.tvTotalBytes)
         private val tvFg:        TextView    = view.findViewById(R.id.tvFgBytes)
@@ -90,9 +89,8 @@ class AppUsageAdapter(
         val chartContainer: FrameLayout      = view.findViewById(R.id.chartContainer)
         val ivChartHint: ImageView           = view.findViewById(R.id.ivChartHint)
 
-        fun bind(entry: AppUsageEntry, rank: Int) {
+        fun bind(entry: AppUsageEntry) {
             ivIcon.setImageDrawable(getAppIcon(entry.packageName))
-            tvRank.text = "$rank"
             tvName.text = entry.appName
             tvTotal.text = ByteFormatter.format(entry.totalBytes)
             tvFg.text  = "FG: ${ByteFormatter.format(entry.fgTotalBytes)}"
