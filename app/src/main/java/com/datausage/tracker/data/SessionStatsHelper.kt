@@ -20,6 +20,14 @@ class SessionStatsHelper(context: Context) {
     data class SessionCount(val total: Int, val active: Int)
 
     /**
+     * Returns session counts for a single package in a given time range.
+     */
+    fun getSessionCountForPackage(packageName: String, startTime: Long, endTime: Long): SessionCount {
+        val counts = getSessionCounts(startTime, endTime)
+        return counts[packageName] ?: SessionCount(0, 0)
+    }
+
+    /**
      * Returns session counts per package name for the given time range.
      */
     fun getSessionCounts(startTime: Long, endTime: Long): Map<String, SessionCount> {

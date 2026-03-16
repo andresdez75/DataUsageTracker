@@ -307,32 +307,51 @@ class MainActivity : AppCompatActivity() {
         )
 
         val dateFmt = SimpleDateFormat("dd/MM", Locale.getDefault())
-        val sb = StringBuilder()
+        val dayMs = 24L * 60 * 60 * 1000
+        val isSessionFilter = selectedSort in listOf(
+            SortOrder.SESSION_ALL, SortOrder.WITH_SESSION,
+            SortOrder.NO_SESSION, SortOrder.SESSION_5S
+        )
 
-        for (day in days) {
-            val date = dateFmt.format(Date(day.startTime))
-            val value = when (selectedSort) {
-                SortOrder.TOTAL_TRAFFIC -> ByteFormatter.format(day.totalBytes)
-                SortOrder.BG_TRAFFIC    -> "BG: ${ByteFormatter.format(day.bgTotalBytes)}"
-                SortOrder.BG_PERCENT    -> "BG: ${ByteFormatter.formatPercent(day.bgRatio)}"
-                SortOrder.SESSION_ALL, SortOrder.WITH_SESSION,
-                SortOrder.NO_SESSION, SortOrder.SESSION_5S ->
-                    ByteFormatter.format(day.totalBytes)
-                SortOrder.NAME          -> ByteFormatter.format(day.totalBytes)
+        val barData = days.map { day ->
+            val label = dateFmt.format(Date(day.startTime))
+            if (isSessionFilter) {
+                val sessions = sessionHelper.getSessionCountForPackage(
+                    entry.packageName, day.startTime, day.endTime
+                )
+                val value = sessions.total.toFloat()
+                val valueLabel = "${sessions.total} sess (${sessions.active} > 5s)"
+                DailyBarChartView.BarData(label, value, valueLabel)
+            } else {
+                val (value, valueLabel) = when (selectedSort) {
+                    SortOrder.BG_TRAFFIC -> day.bgTotalBytes.toFloat() to ByteFormatter.format(day.bgTotalBytes)
+                    SortOrder.BG_PERCENT -> (day.bgRatio * 100f) to ByteFormatter.formatPercent(day.bgRatio)
+                    else -> day.totalBytes.toFloat() to ByteFormatter.format(day.totalBytes)
+                }
+                DailyBarChartView.BarData(label, value, valueLabel)
             }
-            sb.appendLine("$date  —  $value")
         }
 
         val title = when (selectedSort) {
-            SortOrder.TOTAL_TRAFFIC -> "Total Traffic"
             SortOrder.BG_TRAFFIC    -> "BG Traffic"
             SortOrder.BG_PERCENT    -> "BG Percent (%)"
-            else                    -> "Total Traffic"
+            SortOrder.SESSION_ALL, SortOrder.WITH_SESSION,
+            SortOrder.NO_SESSION, SortOrder.SESSION_5S -> "Sessions"
+            else -> "Total Traffic"
+        }
+
+        val chartView = DailyBarChartView(this)
+        chartView.setBackgroundColor(android.graphics.Color.WHITE)
+        chartView.setData(barData)
+
+        val scrollView = android.widget.ScrollView(this).apply {
+            addView(chartView)
+            setPadding(16, 16, 16, 16)
         }
 
         AlertDialog.Builder(this)
             .setTitle("${entry.appName} — $title")
-            .setMessage(sb.toString().trimEnd())
+            .setView(scrollView)
             .setPositiveButton("OK", null)
             .show()
     }

@@ -253,7 +253,9 @@
                         android:textSize="11sp"
                         android:textColor="@color/text_secondary"
                         android:paddingStart="8dp"
-                        android:paddingBottom="2dp"/>
+                        android:paddingBottom="2dp"
+                        android:drawableStart="@drawable/ic_antenna"
+                        android:drawablePadding="4dp"/>
 
                     <Spinner
                         android:id="@+id/spinnerNetwork"
@@ -279,7 +281,9 @@
                         android:textSize="11sp"
                         android:textColor="@color/text_secondary"
                         android:paddingStart="8dp"
-                        android:paddingBottom="2dp"/>
+                        android:paddingBottom="2dp"
+                        android:drawableStart="@drawable/ic_calendar"
+                        android:drawablePadding="4dp"/>
 
                     <Spinner
                         android:id="@+id/spinnerPeriod"
@@ -305,7 +309,9 @@
                         android:textSize="11sp"
                         android:textColor="@color/text_secondary"
                         android:paddingStart="8dp"
-                        android:paddingBottom="2dp"/>
+                        android:paddingBottom="2dp"
+                        android:drawableStart="@drawable/ic_filter"
+                        android:drawablePadding="4dp"/>
 
                     <Spinner
                         android:id="@+id/spinnerSort"
@@ -324,10 +330,13 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:paddingHorizontal="16dp"
-                android:paddingBottom="4dp"
+                android:paddingTop="8dp"
+                android:paddingBottom="8dp"
                 android:textSize="12sp"
                 android:textStyle="bold"
-                android:textColor="@color/text_secondary"/>
+                android:textColor="@color/text_secondary"
+                android:drawableStart="@drawable/ic_apps_grid"
+                android:drawablePadding="6dp"/>
 
             <!-- App list -->
             <TextView
