@@ -5,6 +5,22 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.2.0] — 2026-03-16
+
+### New features
+- **Spinner labels** — added "Access", "Date", and "Filters" labels above each dropdown filter
+- **Expanded filter options** — 8 sort/filter modes replacing the previous 5:
+  - Total Traffic (default, sort by total usage)
+  - BG Traffic (sort by background usage)
+  - BG Percent (%) (sort by background ratio)
+  - Session All (sort by sessions, includes apps with 0)
+  - With Session (filter: only apps with sessions)
+  - No Session (filter: apps with no sessions — background-only consumers)
+  - Session > 5s (filter: only apps with active sessions > 5s)
+  - Name A-Z (sort alphabetically)
+
+---
+
 ## [1.1.0] — 2026-03-15
 
 ### New features

@@ -71,7 +71,7 @@ class MainActivity : AppCompatActivity() {
 
     private var selectedNetwork = NetworkType.MOBILE
     private var selectedPeriod  = TimePeriod.TODAY
-    private var selectedSort    = SortOrder.USAGE
+    private var selectedSort    = SortOrder.TOTAL_TRAFFIC
 
     // Cached data for export
     private var lastEntries: List<AppUsageEntry> = emptyList()
@@ -220,11 +220,14 @@ class MainActivity : AppCompatActivity() {
         }
 
         val entries = when (selectedSort) {
-            SortOrder.USAGE         -> enriched.sortedByDescending { it.totalBytes }
+            SortOrder.TOTAL_TRAFFIC -> enriched.sortedByDescending { it.totalBytes }
+            SortOrder.BG_TRAFFIC    -> enriched.sortedByDescending { it.bgTotalBytes }
+            SortOrder.BG_PERCENT    -> enriched.sortedByDescending { it.bgRatio }
+            SortOrder.SESSION_ALL   -> enriched.sortedByDescending { it.totalSessions }
+            SortOrder.WITH_SESSION  -> enriched.filter { it.totalSessions > 0 }.sortedByDescending { it.totalBytes }
+            SortOrder.NO_SESSION    -> enriched.filter { it.totalSessions == 0 }.sortedByDescending { it.totalBytes }
+            SortOrder.SESSION_5S    -> enriched.filter { it.activeSessions > 0 }.sortedByDescending { it.totalBytes }
             SortOrder.NAME          -> enriched.sortedBy { it.appName.lowercase() }
-            SortOrder.SESSIONS      -> enriched.sortedByDescending { it.totalSessions }
-            SortOrder.WITH_SESSIONS -> enriched.filter { it.totalSessions > 0 }.sortedByDescending { it.totalBytes }
-            SortOrder.ACTIVE_5S     -> enriched.filter { it.activeSessions > 0 }.sortedByDescending { it.totalBytes }
         }
         val summary = helper.getTotalUsageSummary(entries, selectedPeriod, selectedNetwork)
 

@@ -67,7 +67,7 @@ Aggregate of all apps for the device summary.
 ### Enums
 - `NetworkType`: ALL, MOBILE, WIFI
 - `TimePeriod`: TODAY, WEEK (7 days), MONTH (30 days)
-- `SortOrder`: USAGE, NAME, SESSIONS, WITH_SESSIONS, ACTIVE_5S
+- `SortOrder`: TOTAL_TRAFFIC, BG_TRAFFIC, BG_PERCENT, SESSION_ALL, WITH_SESSION, NO_SESSION, SESSION_5S, NAME
 
 ## Main logic — NetworkStatsHelper.kt
 - Uses `NetworkStatsManager.querySummary()` to get data from the OS
@@ -116,9 +116,9 @@ The user must grant the usage data access permission before seeing any data.
 4. **Date range** — device summary shows "From DD/MM/YYYY to DD/MM/YYYY"
 5. **Sidebar menu** — hamburger/drawer menu with JSON export of current filter data (values in MB)
 6. **Toolbar** — grey background with "Data Usage Tracker" title in white, no logo
-7. **Dropdown filters** — replaced chips with 3 spinners: Access (All/Mobile/Wi-Fi), Date (Today/7 days/30 days), Order (5 options)
+7. **Dropdown filters** — replaced chips with 3 labeled spinners: Access (All/Mobile/Wi-Fi), Date (Today/7 days/30 days), Filters (8 options)
 8. **Session tracking** — each app shows "X sessions (Y > 5s)" via UsageStatsManager
-9. **Sort/filter options** — Usage ↓, Name A-Z, Sessions ↓, With sessions, Active > 5s
+9. **Sort/filter options** — Total Traffic, BG Traffic, BG Percent (%), Session All, With Session, No Session, Session > 5s, Name A-Z
 
 ### Special classification rules
 

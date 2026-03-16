@@ -15,11 +15,14 @@ enum class TimePeriod(val label: String) {
 }
 
 enum class SortOrder(val label: String) {
-    USAGE("Usage ↓"),
-    NAME("Name A-Z"),
-    SESSIONS("Sessions ↓"),
-    WITH_SESSIONS("With sessions"),
-    ACTIVE_5S("Active > 5s")
+    TOTAL_TRAFFIC("Total Traffic"),
+    BG_TRAFFIC("BG Traffic"),
+    BG_PERCENT("BG Percent (%)"),
+    SESSION_ALL("Session All"),
+    WITH_SESSION("With Session"),
+    NO_SESSION("No Session"),
+    SESSION_5S("Session > 5s"),
+    NAME("Name A-Z")
 }
 
 // ─── AppUsageEntry ─────────────────────────────────────────────────────────────

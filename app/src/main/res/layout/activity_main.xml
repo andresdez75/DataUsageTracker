@@ -230,46 +230,92 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Filters row: Access, Date, Order -->
+            <!-- Filters row: Access, Date, Filters -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:paddingHorizontal="12dp"
-                android:paddingVertical="8dp">
+                android:paddingTop="8dp"
+                android:paddingBottom="4dp">
 
-                <Spinner
-                    android:id="@+id/spinnerNetwork"
+                <LinearLayout
                     android:layout_width="0dp"
-                    android:layout_height="40dp"
+                    android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:layout_marginEnd="4dp"
-                    android:background="@drawable/bg_spinner"
-                    android:popupBackground="@android:color/white"
-                    android:paddingStart="8dp"
-                    android:paddingEnd="4dp"/>
+                    android:orientation="vertical">
 
-                <Spinner
-                    android:id="@+id/spinnerPeriod"
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Access"
+                        android:textSize="11sp"
+                        android:textColor="@color/text_secondary"
+                        android:paddingStart="8dp"
+                        android:paddingBottom="2dp"/>
+
+                    <Spinner
+                        android:id="@+id/spinnerNetwork"
+                        android:layout_width="match_parent"
+                        android:layout_height="40dp"
+                        android:background="@drawable/bg_spinner"
+                        android:popupBackground="@android:color/white"
+                        android:paddingStart="8dp"
+                        android:paddingEnd="4dp"/>
+                </LinearLayout>
+
+                <LinearLayout
                     android:layout_width="0dp"
-                    android:layout_height="40dp"
+                    android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:layout_marginHorizontal="4dp"
-                    android:background="@drawable/bg_spinner"
-                    android:popupBackground="@android:color/white"
-                    android:paddingStart="8dp"
-                    android:paddingEnd="4dp"/>
+                    android:orientation="vertical">
 
-                <Spinner
-                    android:id="@+id/spinnerSort"
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Date"
+                        android:textSize="11sp"
+                        android:textColor="@color/text_secondary"
+                        android:paddingStart="8dp"
+                        android:paddingBottom="2dp"/>
+
+                    <Spinner
+                        android:id="@+id/spinnerPeriod"
+                        android:layout_width="match_parent"
+                        android:layout_height="40dp"
+                        android:background="@drawable/bg_spinner"
+                        android:popupBackground="@android:color/white"
+                        android:paddingStart="8dp"
+                        android:paddingEnd="4dp"/>
+                </LinearLayout>
+
+                <LinearLayout
                     android:layout_width="0dp"
-                    android:layout_height="40dp"
+                    android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:layout_marginStart="4dp"
-                    android:background="@drawable/bg_spinner"
-                    android:popupBackground="@android:color/white"
-                    android:paddingStart="8dp"
-                    android:paddingEnd="4dp"/>
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Filters"
+                        android:textSize="11sp"
+                        android:textColor="@color/text_secondary"
+                        android:paddingStart="8dp"
+                        android:paddingBottom="2dp"/>
+
+                    <Spinner
+                        android:id="@+id/spinnerSort"
+                        android:layout_width="match_parent"
+                        android:layout_height="40dp"
+                        android:background="@drawable/bg_spinner"
+                        android:popupBackground="@android:color/white"
+                        android:paddingStart="8dp"
+                        android:paddingEnd="4dp"/>
+                </LinearLayout>
             </LinearLayout>
 
             <!-- App list -->
