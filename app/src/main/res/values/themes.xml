@@ -6,4 +6,15 @@
         <item name="colorOnPrimary">@color/white</item>
         <item name="android:statusBarColor" tools:targetApi="l">@color/primary_blue_dark</item>
     </style>
+
+    <!-- Custom DateRangePicker theme: hide manual input toggle, compact header -->
+    <style name="Theme.DataUsageTracker.DatePicker" parent="ThemeOverlay.MaterialComponents.MaterialCalendar">
+        <item name="materialCalendarHeaderToggleButton">@style/DatePicker.HeaderToggle.Hidden</item>
+        <item name="colorPrimary">@color/primary_blue</item>
+        <item name="colorOnPrimary">@color/white</item>
+    </style>
+
+    <style name="DatePicker.HeaderToggle.Hidden" parent="Widget.MaterialComponents.MaterialCalendar.HeaderToggleButton">
+        <item name="android:visibility">gone</item>
+    </style>
 </resources>

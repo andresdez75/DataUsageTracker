@@ -312,9 +312,10 @@ class MainActivity : AppCompatActivity() {
             .setValidator(DateValidatorPointBackward.now())
 
         val picker = MaterialDatePicker.Builder.dateRangePicker()
-            .setTitleText("Select date range")
+            .setTitleText("\uD83D\uDCC5  Select Date Range")
             .setCalendarConstraints(constraintsBuilder.build())
-            .setTheme(com.google.android.material.R.style.ThemeOverlay_MaterialComponents_MaterialCalendar)
+            .setTheme(R.style.Theme_DataUsageTracker_DatePicker)
+            .setInputMode(MaterialDatePicker.INPUT_MODE_CALENDAR)
             .build()
 
         picker.addOnPositiveButtonClickListener { selection ->
