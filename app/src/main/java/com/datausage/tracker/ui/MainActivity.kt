@@ -254,6 +254,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         // App list — collapse any expanded chart and scroll to top after list updates
+        adapter.chartAvailable = selectedPeriod != TimePeriod.TODAY
         adapter.collapseAll()
         adapter.submitList(entries) {
             rvApps.scrollToPosition(0)

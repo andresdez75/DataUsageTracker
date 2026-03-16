@@ -27,6 +27,7 @@ class AppUsageAdapter(
 ) : ListAdapter<AppUsageEntry, AppUsageAdapter.ViewHolder>(DiffCallback()) {
 
     private var expandedUid: Int? = null
+    var chartAvailable: Boolean = false
 
     fun collapseAll() {
         expandedUid = null
@@ -42,6 +43,9 @@ class AppUsageAdapter(
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val entry = getItem(position)
         holder.bind(entry, position + 1)
+
+        // Chart hint icon visibility
+        holder.ivChartHint.visibility = if (chartAvailable && expandedUid != entry.uid) View.VISIBLE else View.GONE
 
         // Expand/collapse chart
         val container = holder.chartContainer
@@ -63,9 +67,11 @@ class AppUsageAdapter(
             if (wasExpanded) {
                 container.removeAllViews()
                 container.visibility = View.GONE
+                holder.ivChartHint.visibility = if (chartAvailable) View.VISIBLE else View.GONE
             } else {
                 container.removeAllViews()
                 container.visibility = View.VISIBLE
+                holder.ivChartHint.visibility = View.GONE
                 onItemClick?.invoke(entry, container)
             }
         }
@@ -82,6 +88,7 @@ class AppUsageAdapter(
         private val progressBg:  ProgressBar = view.findViewById(R.id.progressBg)
         private val tvSessions:  TextView    = view.findViewById(R.id.tvSessions)
         val chartContainer: FrameLayout      = view.findViewById(R.id.chartContainer)
+        val ivChartHint: ImageView           = view.findViewById(R.id.ivChartHint)
 
         fun bind(entry: AppUsageEntry, rank: Int) {
             ivIcon.setImageDrawable(getAppIcon(entry.packageName))

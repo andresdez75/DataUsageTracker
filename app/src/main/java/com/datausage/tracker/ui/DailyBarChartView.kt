@@ -42,7 +42,7 @@ class DailyBarChartView @JvmOverloads constructor(
     }
     private val subtitlePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = 0xFF999999.toInt()
-        textSize = 22f
+        textSize = 24f
         textAlign = Paint.Align.LEFT
     }
     private val totalPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -100,9 +100,10 @@ class DailyBarChartView @JvmOverloads constructor(
         // Top padding + title + gap
         var h = 16 + 40 + 16
         if (subtitleLine1.isNotEmpty()) {
-            h += 28 // line 1
-            if (subtitleLine2.isNotEmpty()) h += 26 // line 2
-            h += 12 // gap after subtitle
+            h += 16 // gap between title and subtitle
+            h += 30 // line 1
+            if (subtitleLine2.isNotEmpty()) h += 28 // line 2
+            h += 14 // gap after subtitle
         }
         return h
     }
@@ -157,10 +158,10 @@ class DailyBarChartView @JvmOverloads constructor(
         // Subtitle (two lines, with spacing from title)
         var subtitleBottom = titleY
         if (subtitleLine1.isNotEmpty()) {
-            subtitleBottom = titleY + 28f
+            subtitleBottom = titleY + 40f
             canvas.drawText(subtitleLine1, iconLeft + 4, subtitleBottom, subtitlePaint)
             if (subtitleLine2.isNotEmpty()) {
-                subtitleBottom += 26f
+                subtitleBottom += 28f
                 canvas.drawText(subtitleLine2, iconLeft + 4, subtitleBottom, subtitlePaint)
             }
         }
