@@ -14,7 +14,7 @@ import androidx.core.content.ContextCompat
  * Horizontal bar chart for daily breakdown.
  * Black background, green (#B5FFB5) horizontal bars.
  * Title with icon at top left, aggregated total at top right.
- * Optional subtitle for session limitation note.
+ * Optional two-line subtitle for session limitation note.
  */
 class DailyBarChartView @JvmOverloads constructor(
     context: Context, attrs: AttributeSet? = null
@@ -25,7 +25,8 @@ class DailyBarChartView @JvmOverloads constructor(
     private var bars: List<BarData> = emptyList()
     private var maxValue: Float = 0f
     private var title: String = ""
-    private var subtitle: String = ""
+    private var subtitleLine1: String = ""
+    private var subtitleLine2: String = ""
     private var totalLabel: String = ""
     private var iconDrawable: Drawable? = null
 
@@ -40,8 +41,8 @@ class DailyBarChartView @JvmOverloads constructor(
         isFakeBoldText = true
     }
     private val subtitlePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = 0xFF888888.toInt()
-        textSize = 20f
+        color = 0xFF999999.toInt()
+        textSize = 22f
         textAlign = Paint.Align.LEFT
     }
     private val totalPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -70,8 +71,9 @@ class DailyBarChartView @JvmOverloads constructor(
         invalidate()
     }
 
-    fun setSubtitle(text: String) {
-        subtitle = text
+    fun setSubtitle(line1: String, line2: String = "") {
+        subtitleLine1 = line1
+        subtitleLine2 = line2
         requestLayout()
         invalidate()
     }
@@ -95,8 +97,13 @@ class DailyBarChartView @JvmOverloads constructor(
     }
 
     private fun getTitleAreaHeight(): Int {
-        var h = 70
-        if (subtitle.isNotEmpty()) h += 24
+        // Top padding + title + gap
+        var h = 16 + 40 + 16
+        if (subtitleLine1.isNotEmpty()) {
+            h += 28 // line 1
+            if (subtitleLine2.isNotEmpty()) h += 26 // line 2
+            h += 12 // gap after subtitle
+        }
         return h
     }
 
@@ -123,14 +130,17 @@ class DailyBarChartView @JvmOverloads constructor(
         val barHeight = 22f
         val titleAreaBottom = getTitleAreaHeight().toFloat()
 
+        // Top padding
+        val topPad = 16f
+
         // Icon + title
         val iconSize = 40
         val iconLeft = 20f
         val titleX = iconLeft + iconSize + 12f
-        val titleY = 42f
+        val titleY = topPad + 34f
 
         iconDrawable?.let { icon ->
-            val iconTop = ((titleY - iconSize + 8) / 2 + 4).toInt()
+            val iconTop = (topPad + 2).toInt()
             icon.setBounds(iconLeft.toInt(), iconTop, (iconLeft + iconSize).toInt(), iconTop + iconSize)
             icon.draw(canvas)
         }
@@ -144,12 +154,18 @@ class DailyBarChartView @JvmOverloads constructor(
             canvas.drawText(totalLabel, width - 20f, titleY, totalPaint)
         }
 
-        // Subtitle (session limitation note)
-        if (subtitle.isNotEmpty()) {
-            canvas.drawText(subtitle, iconLeft + 4, titleY + 24f, subtitlePaint)
+        // Subtitle (two lines, with spacing from title)
+        var subtitleBottom = titleY
+        if (subtitleLine1.isNotEmpty()) {
+            subtitleBottom = titleY + 28f
+            canvas.drawText(subtitleLine1, iconLeft + 4, subtitleBottom, subtitlePaint)
+            if (subtitleLine2.isNotEmpty()) {
+                subtitleBottom += 26f
+                canvas.drawText(subtitleLine2, iconLeft + 4, subtitleBottom, subtitlePaint)
+            }
         }
 
-        // Separator line with more spacing
+        // Separator line
         canvas.drawLine(16f, titleAreaBottom - 4, width - 16f, titleAreaBottom - 4, gridPaint)
 
         if (maxValue == 0f) return

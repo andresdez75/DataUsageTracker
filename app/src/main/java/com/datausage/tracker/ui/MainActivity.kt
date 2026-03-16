@@ -444,7 +444,10 @@ class MainActivity : AppCompatActivity() {
         chartView.setIcon(iconRes)
         chartView.setTotalLabel(totalLabel)
         if (isSessionFilter) {
-            chartView.setSubtitle("Session history starts from install (~7 days initially)")
+            chartView.setSubtitle(
+                "Session history starts from install.",
+                "~7 days initially, more over time."
+            )
         }
         chartView.setData(barData)
         container.addView(chartView)
