@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Step 1: Splash — app logo and name -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:padding="32dp"
+    android:background="@color/surface_white">
+
+    <ImageView
+        android:id="@+id/ivLogo"
+        android:layout_width="140dp"
+        android:layout_height="140dp"
+        android:src="@drawable/ic_app_logo"
+        android:contentDescription="App logo"
+        android:alpha="0"/>
+
+    <TextView
+        android:id="@+id/tvAppName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:text="Data Usage Tracker"
+        android:textSize="28sp"
+        android:textStyle="bold"
+        android:textColor="@color/text_primary"
+        android:alpha="0"/>
+
+    <TextView
+        android:id="@+id/tvTagline"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:text="Monitor your data. Control your apps."
+        android:textSize="16sp"
+        android:textColor="@color/text_secondary"
+        android:textAlignment="center"
+        android:alpha="0"/>
+
+</LinearLayout>

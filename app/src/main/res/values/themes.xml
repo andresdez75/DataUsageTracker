@@ -7,6 +7,13 @@
         <item name="android:statusBarColor" tools:targetApi="l">@color/primary_blue_dark</item>
     </style>
 
+    <!-- Onboarding theme: white status bar, no action bar -->
+    <style name="Theme.DataUsageTracker.Onboarding" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/primary_blue</item>
+        <item name="android:statusBarColor" tools:targetApi="l">@color/surface_white</item>
+        <item name="android:windowLightStatusBar" tools:targetApi="m">true</item>
+    </style>
+
     <!-- Custom DateRangePicker theme: hide manual input toggle, compact header -->
     <style name="Theme.DataUsageTracker.DatePicker" parent="ThemeOverlay.MaterialComponents.MaterialCalendar">
         <item name="materialCalendarHeaderToggleButton">@style/DatePicker.HeaderToggle.Hidden</item>

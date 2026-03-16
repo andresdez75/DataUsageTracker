@@ -1,0 +1,16 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="120dp"
+    android:height="120dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- Data usage icon: signal bars with arrows -->
+    <path
+        android:fillColor="#1A73E8"
+        android:pathData="M2,22h20V2L2,22zM12,12.5v6h-2v-6H12zM16,9v9.5h-2V9H16zM8,16v2.5H6V16H8z"/>
+    <path
+        android:fillColor="#1558B0"
+        android:pathData="M19,4L19,4l-2.29,2.29l1.42,1.42L19,6.83V10h2V4H19z"/>
+    <path
+        android:fillColor="#E8710A"
+        android:pathData="M5,10l2.29,-2.29L5.87,6.29L5,7.17V4H3v6H5z"/>
+</vector>

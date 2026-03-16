@@ -17,6 +17,9 @@
     <uses-permission
         android:name="android.permission.READ_PHONE_STATE"/>
 
+    <uses-permission
+        android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS"/>
+
     <!-- Required since Android 11 (API 30) so queryIntentActivities
          returns ALL apps with a launcher icon -->
     <queries>
@@ -35,14 +38,19 @@
         android:theme="@style/Theme.DataUsageTracker">
 
         <activity
-            android:name=".ui.MainActivity"
+            android:name=".ui.OnboardingActivity"
             android:exported="true"
-            android:windowSoftInputMode="adjustResize">
+            android:theme="@style/Theme.DataUsageTracker.Onboarding">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+
+        <activity
+            android:name=".ui.MainActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize"/>
 
         <provider
             android:name="androidx.core.content.FileProvider"
