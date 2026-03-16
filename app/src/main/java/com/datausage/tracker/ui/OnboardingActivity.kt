@@ -150,7 +150,7 @@ class OnboardingActivity : AppCompatActivity() {
         val view = LayoutInflater.from(this).inflate(R.layout.step_battery_permission, container, false)
         container.addView(view)
 
-        btnAction.text = "Disable Optimization"
+        btnAction.text = "Enable Optimization"
         btnSkip.visibility = View.VISIBLE
         btnSkip.text = "Skip for now"
 
@@ -242,16 +242,11 @@ class OnboardingActivity : AppCompatActivity() {
     }
 
     private fun updateBatteryStatus() {
-        val tvStatus = container.findViewById<TextView>(R.id.tvBatteryStatus) ?: return
         if (!isBatteryOptimized()) {
-            tvStatus.text = "Battery optimization disabled"
-            tvStatus.setTextColor(getColor(R.color.primary_blue))
             btnAction.text = "Finish Setup"
             btnSkip.visibility = View.GONE
         } else {
-            tvStatus.text = "Battery optimization is active"
-            tvStatus.setTextColor(getColor(R.color.warning_orange))
-            btnAction.text = "Disable Optimization"
+            btnAction.text = "Enable Optimization"
         }
     }
 

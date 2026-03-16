@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Step 3: Battery optimization exemption -->
+<!-- Step 3: Measurement optimization -->
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -28,7 +28,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:text="Battery Optimization"
+            android:text="Measurement Optimization"
             android:textSize="24sp"
             android:textStyle="bold"
             android:textColor="@color/text_primary"/>
@@ -38,7 +38,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
-            android:text="For accurate session tracking, please disable battery optimization for this app. This ensures the app can properly record usage data in the background."
+            android:text="For accurate session tracking, please enable this optimization. This ensures the app can properly record usage data in the background without interruptions."
             android:textSize="15sp"
             android:textColor="@color/text_secondary"
             android:textAlignment="center"
@@ -66,39 +66,19 @@
                     android:layout_width="64dp"
                     android:layout_height="64dp"
                     android:src="@drawable/ic_battery_exempt"
-                    android:contentDescription="Battery optimization"/>
+                    android:contentDescription="Measurement optimization"/>
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
-                    android:text="Don't optimize"
-                    android:textSize="18sp"
-                    android:textStyle="bold"
-                    android:textColor="@color/text_primary"/>
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
                     android:text="Allow Data Usage Tracker to\nrun in the background"
-                    android:textSize="13sp"
+                    android:textSize="14sp"
                     android:textColor="@color/text_secondary"
                     android:textAlignment="center"
                     android:lineSpacingMultiplier="1.3"/>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
-
-        <!-- Status indicator -->
-        <TextView
-            android:id="@+id/tvBatteryStatus"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
-            android:text="Battery optimization is active"
-            android:textSize="14sp"
-            android:textColor="@color/warning_orange"
-            android:textStyle="bold"/>
 
     </LinearLayout>
 </ScrollView>

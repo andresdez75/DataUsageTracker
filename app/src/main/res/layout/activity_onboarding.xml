@@ -3,7 +3,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="@color/surface_white">
+    android:background="@color/surface_white"
+    android:fitsSystemWindows="true">
 
     <!-- Step content area -->
     <FrameLayout
@@ -47,7 +48,7 @@
         android:layout_width="match_parent"
         android:layout_height="56dp"
         android:layout_marginHorizontal="32dp"
-        android:layout_marginBottom="12dp"
+        android:layout_marginBottom="8dp"
         android:background="@drawable/bg_button_primary"
         android:text="Get Started"
         android:textColor="@android:color/white"
@@ -61,7 +62,7 @@
         android:layout_width="match_parent"
         android:layout_height="48dp"
         android:layout_marginHorizontal="32dp"
-        android:layout_marginBottom="24dp"
+        android:layout_marginBottom="16dp"
         android:background="@drawable/bg_button_secondary"
         android:text="Skip"
         android:textColor="#1A73E8"
