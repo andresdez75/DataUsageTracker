@@ -13,11 +13,10 @@ import android.widget.TextView
 import android.widget.Toast
 import java.io.File
 import java.text.SimpleDateFormat
-import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 import androidx.appcompat.app.ActionBarDrawerToggle
-import androidx.appcompat.app.AlertDialog
+import android.widget.FrameLayout
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.core.content.FileProvider
@@ -70,7 +69,7 @@ class MainActivity : AppCompatActivity() {
     // ─── State ────────────────────────────────────────────────────────────────
     private val helper         by lazy { NetworkStatsHelper(this) }
     private val sessionHelper  by lazy { com.datausage.tracker.data.SessionStatsHelper(this) }
-    private val adapter        by lazy { AppUsageAdapter { entry -> showDailyBreakdown(entry) } }
+    private val adapter        by lazy { AppUsageAdapter { entry, container -> showDailyBreakdown(entry, container) } }
 
     private var selectedNetwork = NetworkType.MOBILE
     private var selectedPeriod  = TimePeriod.TODAY
@@ -246,9 +245,11 @@ class MainActivity : AppCompatActivity() {
             lastWifiEntries = null
         }
 
-        // App list
-        adapter.submitList(entries)
-        rvApps.scrollToPosition(0)
+        // App list — collapse any expanded chart and scroll to top after list updates
+        adapter.collapseAll()
+        adapter.submitList(entries) {
+            rvApps.scrollToPosition(0)
+        }
 
         // Filtered count
         tvFilteredCount.text = "Applications: ${entries.size}"
@@ -298,7 +299,7 @@ class MainActivity : AppCompatActivity() {
 
     // ─── Daily Breakdown ──────────────────────────────────────────────────────
 
-    private fun showDailyBreakdown(entry: AppUsageEntry) {
+    private fun showDailyBreakdown(entry: AppUsageEntry, container: FrameLayout) {
         if (selectedPeriod == TimePeriod.TODAY) return
 
         val days = helper.getDailyBreakdown(
@@ -307,7 +308,6 @@ class MainActivity : AppCompatActivity() {
         )
 
         val dateFmt = SimpleDateFormat("dd/MM", Locale.getDefault())
-        val dayMs = 24L * 60 * 60 * 1000
         val isSessionFilter = selectedSort in listOf(
             SortOrder.SESSION_ALL, SortOrder.WITH_SESSION,
             SortOrder.NO_SESSION, SortOrder.SESSION_5S
@@ -332,28 +332,9 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        val title = when (selectedSort) {
-            SortOrder.BG_TRAFFIC    -> "BG Traffic"
-            SortOrder.BG_PERCENT    -> "BG Percent (%)"
-            SortOrder.SESSION_ALL, SortOrder.WITH_SESSION,
-            SortOrder.NO_SESSION, SortOrder.SESSION_5S -> "Sessions"
-            else -> "Total Traffic"
-        }
-
         val chartView = DailyBarChartView(this)
-        chartView.setBackgroundColor(android.graphics.Color.WHITE)
         chartView.setData(barData)
-
-        val scrollView = android.widget.ScrollView(this).apply {
-            addView(chartView)
-            setPadding(16, 16, 16, 16)
-        }
-
-        AlertDialog.Builder(this)
-            .setTitle("${entry.appName} — $title")
-            .setView(scrollView)
-            .setPositiveButton("OK", null)
-            .show()
+        container.addView(chartView)
     }
 
     // ─── Permission ──────────────────────────────────────────────────────────

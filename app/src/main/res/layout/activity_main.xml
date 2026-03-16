@@ -253,7 +253,7 @@
                         android:textSize="11sp"
                         android:textColor="@color/text_secondary"
                         android:paddingStart="8dp"
-                        android:paddingBottom="2dp"
+                        android:paddingBottom="6dp"
                         android:drawableStart="@drawable/ic_antenna"
                         android:drawablePadding="4dp"/>
 
@@ -281,7 +281,7 @@
                         android:textSize="11sp"
                         android:textColor="@color/text_secondary"
                         android:paddingStart="8dp"
-                        android:paddingBottom="2dp"
+                        android:paddingBottom="6dp"
                         android:drawableStart="@drawable/ic_calendar"
                         android:drawablePadding="4dp"/>
 
@@ -309,7 +309,7 @@
                         android:textSize="11sp"
                         android:textColor="@color/text_secondary"
                         android:paddingStart="8dp"
-                        android:paddingBottom="2dp"
+                        android:paddingBottom="6dp"
                         android:drawableStart="@drawable/ic_filter"
                         android:drawablePadding="4dp"/>
 

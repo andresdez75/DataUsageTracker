@@ -9,8 +9,8 @@ import android.util.AttributeSet
 import android.view.View
 
 /**
- * Simple bar chart view for daily breakdown dialog.
- * Light blue bars on white background with date labels and value labels.
+ * Simple horizontal bar chart for daily breakdown.
+ * Black background, green (#B5FFB5) bars, white labels.
  */
 class DailyBarChartView @JvmOverloads constructor(
     context: Context, attrs: AttributeSet? = null
@@ -21,18 +21,25 @@ class DailyBarChartView @JvmOverloads constructor(
     private var bars: List<BarData> = emptyList()
     private var maxValue: Float = 0f
 
+    private val bgPaint = Paint().apply {
+        color = Color.BLACK
+    }
     private val barPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = 0xFFADD8E6.toInt() // light blue
+        color = 0xFFB5FFB5.toInt() // light green
     }
     private val labelPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = Color.DKGRAY
-        textSize = 28f
-        textAlign = Paint.Align.CENTER
+        color = Color.WHITE
+        textSize = 26f
+        textAlign = Paint.Align.RIGHT
     }
     private val valuePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = Color.DKGRAY
-        textSize = 24f
-        textAlign = Paint.Align.CENTER
+        color = 0xFFB5FFB5.toInt()
+        textSize = 22f
+        textAlign = Paint.Align.LEFT
+    }
+    private val gridPaint = Paint().apply {
+        color = 0xFF333333.toInt()
+        strokeWidth = 1f
     }
 
     fun setData(data: List<BarData>) {
@@ -44,41 +51,46 @@ class DailyBarChartView @JvmOverloads constructor(
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         val width = MeasureSpec.getSize(widthMeasureSpec)
-        val height = (bars.size * 100 + 40).coerceAtLeast(200)
+        val rowHeight = 56
+        val padding = 32
+        val height = (bars.size * rowHeight + padding).coerceAtLeast(100)
         setMeasuredDimension(width, height)
     }
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
+
+        // Black background
+        canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), bgPaint)
+
         if (bars.isEmpty() || maxValue == 0f) return
 
-        val leftMargin = 120f
-        val rightMargin = 40f
-        val barHeight = 36f
-        val rowHeight = 80f
-        val topMargin = 20f
+        val leftMargin = 100f
+        val rightMargin = 16f
+        val barHeight = 24f
+        val rowHeight = 56f
+        val topMargin = 16f
         val maxBarWidth = width - leftMargin - rightMargin
 
         for ((index, bar) in bars.withIndex()) {
             val y = topMargin + index * rowHeight
 
-            // Date label on the left
-            canvas.drawText(bar.label, leftMargin / 2, y + barHeight / 2 + 10, labelPaint)
+            // Subtle grid line
+            canvas.drawLine(leftMargin, y + rowHeight - 4, width - rightMargin, y + rowHeight - 4, gridPaint)
 
-            // Bar
-            val barWidth = if (maxValue > 0) (bar.value / maxValue) * maxBarWidth else 0f
-            val rect = RectF(leftMargin, y, leftMargin + barWidth, y + barHeight)
-            canvas.drawRoundRect(rect, 6f, 6f, barPaint)
+            // Date label on the left
+            canvas.drawText(bar.label, leftMargin - 12, y + barHeight / 2 + 9, labelPaint)
+
+            // Bar with rounded corners
+            val barWidth = if (maxValue > 0) (bar.value / maxValue) * (maxBarWidth - 120f) else 0f
+            if (barWidth > 0) {
+                val rect = RectF(leftMargin, y + 4, leftMargin + barWidth, y + 4 + barHeight)
+                canvas.drawRoundRect(rect, 4f, 4f, barPaint)
+            }
 
             // Value label to the right of bar
-            val valueX = leftMargin + barWidth + 10
-            if (valueX + 100 < width) {
-                valuePaint.textAlign = Paint.Align.LEFT
-                canvas.drawText(bar.valueLabel, valueX, y + barHeight / 2 + 8, valuePaint)
-            } else {
-                valuePaint.textAlign = Paint.Align.RIGHT
-                canvas.drawText(bar.valueLabel, leftMargin + barWidth - 10, y + barHeight / 2 + 8, valuePaint)
-            }
+            val valueX = leftMargin + barWidth + 8
+            canvas.drawText(bar.valueLabel, valueX, y + barHeight / 2 + 8, valuePaint)
         }
     }
 }

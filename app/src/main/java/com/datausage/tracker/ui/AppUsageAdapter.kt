@@ -5,6 +5,7 @@ import android.graphics.drawable.Drawable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.TextView
@@ -18,12 +19,19 @@ import com.datausage.tracker.util.ByteFormatter
 
 /**
  * Adapter for the main app list.
- * Uses ListAdapter + DiffUtil for efficient updates
- * when the user changes period or network type.
+ * Uses ListAdapter + DiffUtil for efficient updates.
+ * Supports inline expandable bar chart on item click.
  */
 class AppUsageAdapter(
-    private val onItemClick: ((AppUsageEntry) -> Unit)? = null
+    private val onItemClick: ((AppUsageEntry, FrameLayout) -> Unit)? = null
 ) : ListAdapter<AppUsageEntry, AppUsageAdapter.ViewHolder>(DiffCallback()) {
+
+    private var expandedUid: Int? = null
+
+    fun collapseAll() {
+        expandedUid = null
+        notifyDataSetChanged()
+    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(parent.context)
@@ -34,42 +42,58 @@ class AppUsageAdapter(
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val entry = getItem(position)
         holder.bind(entry, position + 1)
-        holder.itemView.setOnClickListener { onItemClick?.invoke(entry) }
+
+        // Expand/collapse chart
+        val container = holder.chartContainer
+        val isExpanded = expandedUid == entry.uid
+        container.visibility = if (isExpanded) View.VISIBLE else View.GONE
+        if (!isExpanded) container.removeAllViews()
+
+        holder.itemView.setOnClickListener {
+            val wasExpanded = expandedUid == entry.uid
+            val prevUid = expandedUid
+            expandedUid = if (wasExpanded) null else entry.uid
+
+            // Collapse previous
+            if (prevUid != null && prevUid != entry.uid) {
+                val prevPos = (0 until itemCount).firstOrNull { getItem(it).uid == prevUid }
+                if (prevPos != null) notifyItemChanged(prevPos)
+            }
+
+            if (wasExpanded) {
+                container.removeAllViews()
+                container.visibility = View.GONE
+            } else {
+                container.removeAllViews()
+                container.visibility = View.VISIBLE
+                onItemClick?.invoke(entry, container)
+            }
+        }
     }
 
     inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-        private val ivIcon:      ImageView  = view.findViewById(R.id.ivAppIcon)
-        private val tvRank:      TextView   = view.findViewById(R.id.tvRank)
-        private val tvName:      TextView   = view.findViewById(R.id.tvAppName)
-        private val tvTotal:     TextView   = view.findViewById(R.id.tvTotalBytes)
-        private val tvFg:        TextView   = view.findViewById(R.id.tvFgBytes)
-        private val tvBg:        TextView   = view.findViewById(R.id.tvBgBytes)
-        private val tvBgRatio:   TextView   = view.findViewById(R.id.tvBgRatio)
+        private val ivIcon:      ImageView   = view.findViewById(R.id.ivAppIcon)
+        private val tvRank:      TextView    = view.findViewById(R.id.tvRank)
+        private val tvName:      TextView    = view.findViewById(R.id.tvAppName)
+        private val tvTotal:     TextView    = view.findViewById(R.id.tvTotalBytes)
+        private val tvFg:        TextView    = view.findViewById(R.id.tvFgBytes)
+        private val tvBg:        TextView    = view.findViewById(R.id.tvBgBytes)
+        private val tvBgRatio:   TextView    = view.findViewById(R.id.tvBgRatio)
         private val progressBg:  ProgressBar = view.findViewById(R.id.progressBg)
-        private val tvSessions:  TextView   = view.findViewById(R.id.tvSessions)
+        private val tvSessions:  TextView    = view.findViewById(R.id.tvSessions)
+        val chartContainer: FrameLayout      = view.findViewById(R.id.chartContainer)
 
         fun bind(entry: AppUsageEntry, rank: Int) {
-            // App icon
             ivIcon.setImageDrawable(getAppIcon(entry.packageName))
-
-            // Ranking position
             tvRank.text = "#$rank"
-
-            // Name
             tvName.text = entry.appName
-
-            // Total bytes
             tvTotal.text = ByteFormatter.format(entry.totalBytes)
-
-            // Foreground / Background
             tvFg.text  = "FG: ${ByteFormatter.format(entry.fgTotalBytes)}"
             tvBg.text  = "BG: ${ByteFormatter.format(entry.bgTotalBytes)}"
 
-            // % background — key product metric (METRICS.md)
             val bgPct = ByteFormatter.formatPercent(entry.bgRatio)
             tvBgRatio.text = "BG $bgPct"
 
-            // Sessions
             if (entry.totalSessions > 0) {
                 tvSessions.visibility = View.VISIBLE
                 tvSessions.text = "${entry.totalSessions} sessions (${entry.activeSessions} > 5s)"
@@ -77,10 +101,8 @@ class AppUsageAdapter(
                 tvSessions.visibility = View.GONE
             }
 
-            // Visual progress bar for % background
             progressBg.progress = (entry.bgRatio * 100).toInt()
 
-            // Apps with bgRatio > 50% visually highlighted (METRICS.md note)
             val ctx = itemView.context
             val color = if (entry.bgRatio > 0.5f) {
                 ContextCompat.getColor(ctx, R.color.warning_orange)

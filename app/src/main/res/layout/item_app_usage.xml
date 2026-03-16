@@ -118,5 +118,13 @@
             android:layout_marginStart="84dp"
             android:max="100"
             android:progress="0"/>
+
+        <!-- Expandable daily chart container -->
+        <FrameLayout
+            android:id="@+id/chartContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:visibility="gone"/>
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>
